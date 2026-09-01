@@ -43,7 +43,7 @@
     <span id="copy-toast-msg">Account Number Copied!</span>
   </div>
 
-  <!-- ==================== OFFICER LOGIN ==================== -->
+  <!-- Officer Login -->
   <div id="admin-login-screen" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="admin-terminal-card max-w-lg w-full rounded-3xl p-8 text-white shadow-2xl space-y-5 relative overflow-hidden border border-emerald-500/40">
       <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -100,7 +100,7 @@
     </div>
   </div>
 
-  <!-- ==================== CBS MASTER ADMIN PORTAL ==================== -->
+  <!-- Master Admin Portal -->
   <div id="admin-main-portal" class="hidden flex-col min-h-screen flex-1">
     <header class="bg-[#005934] text-white shadow-md border-b border-emerald-600/30">
       <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -125,7 +125,7 @@
 
     <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      <!-- Left Column: Queues & CIF Creation Form -->
+      <!-- Left Column: Queues & CIF Form -->
       <div class="space-y-6">
         
         <!-- 1. SAVINGS ACCOUNT OPENING REQUESTS QUEUE -->
@@ -150,7 +150,7 @@
           <div id="unified-requests-list" class="space-y-3 max-h-72 overflow-y-auto"></div>
         </div>
 
-        <!-- Account Provisioning Card -->
+        <!-- CIF Form -->
         <div class="bg-[#131d31] p-5 rounded-2xl border border-slate-700/80 shadow-sm space-y-4">
           <div class="flex justify-between items-center border-b border-slate-700 pb-2.5">
             <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center">
@@ -308,7 +308,7 @@
         <h3 class="text-sm font-bold text-yellow-400 uppercase tracking-wider flex items-center">
           <i class="fa-solid fa-credit-card mr-2"></i> Manage Debit Card Tier
         </h3>
-        <p class="text-xs text-slate-400">Select card tier for customer. Auto-mode allocates Gold for $\ge$ ₹1 Crore balance and Platinum if less.</p>
+        <p class="text-xs text-slate-400">Select card tier for customer. Auto-mode allocates Gold for balance $\ge$ ₹1 Crore and Platinum if less.</p>
         
         <div class="space-y-3">
           <label class="block text-xs font-semibold text-slate-300">Allocated Card Scheme</label>
@@ -388,6 +388,8 @@
   </div>
 
   <script>
+    const API_BASE = window.location.origin + '/api';
+
     window.copyAccountNumber = function(accText) {
       if (!accText || accText === '-') return;
       navigator.clipboard.writeText(accText.trim()).then(() => {
@@ -456,27 +458,29 @@
       generateChallenge();
     };
 
-    const DEFAULT_ACCOUNTS = [
-      { id: '1', name: 'Rahul Sharma', custId: '1001', accNum: '102345678901', mpin: '1234', type: 'Savings Account', balance: 75420.50, isFrozen: false, secBirth: 'Mumbai', secMother: 'Sharma', cardTier: 'auto' },
-      { id: '2', name: 'Pooja Verma', custId: '1002', accNum: '102345678902', mpin: '5678', type: 'Salary Account', balance: 11492000.00, isFrozen: false, secBirth: 'Delhi', secMother: 'Verma', cardTier: 'auto' }
-    ];
-
     let currentSelectedAcc = null;
     let currentPurgeToken = '';
     let currentOverrideItem = null;
 
-    function getAccounts() {
-      const data = localStorage.getItem('idbi_demo_accounts');
-      return data ? JSON.parse(data) : DEFAULT_ACCOUNTS;
+    async function getAccounts() {
+      try {
+        const res = await fetch(`${API_BASE}/accounts`);
+        return await res.json();
+      } catch {
+        return [];
+      }
     }
 
-    function saveAccounts(accounts) {
-      localStorage.setItem('idbi_demo_accounts', JSON.stringify(accounts));
+    async function saveAccounts(accs) {
+      await fetch(`${API_BASE}/accounts`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(accs)
+      });
       renderTable();
       if (currentSelectedAcc) {
-        const updated = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
+        const updated = accs.find(a => a.accNum === currentSelectedAcc.accNum);
         if (updated) displayAccountCard(updated);
-        else document.getElementById('account-card').classList.add('hidden');
       }
     }
 
@@ -486,11 +490,26 @@
       return generated;
     }
 
-    function getSavingsLeads() { return JSON.parse(localStorage.getItem('idbi_savings_leads') || '[]'); }
-    function saveSavingsLeads(leads) { localStorage.setItem('idbi_savings_leads', JSON.stringify(leads)); renderSavingsLeads(); }
+    async function getSavingsLeads() {
+      try {
+        const res = await fetch(`${API_BASE}/leads`);
+        return await res.json();
+      } catch {
+        return [];
+      }
+    }
 
-    function renderSavingsLeads() {
-      const leads = getSavingsLeads();
+    async function saveSavingsLeads(leads) {
+      await fetch(`${API_BASE}/leads`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leads)
+      });
+      renderSavingsLeads();
+    }
+
+    async function renderSavingsLeads() {
+      const leads = await getSavingsLeads();
       const container = document.getElementById('savings-leads-list');
       document.getElementById('badge-leads-count').textContent = leads.length;
       container.innerHTML = '';
@@ -524,13 +543,13 @@
       });
     }
 
-    window.approveSavingsLead = function(idx) {
-      const leads = getSavingsLeads();
+    window.approveSavingsLead = async function(idx) {
+      const leads = await getSavingsLeads();
       const lead = leads[idx];
       if (!lead) return;
 
       document.getElementById('holder-name').value = lead.name;
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       document.getElementById('holder-cust-id').value = (1000 + accounts.length + 1).toString();
       document.getElementById('holder-mpin').value = '1234';
       document.getElementById('holder-sec-birth').value = 'India';
@@ -539,22 +558,37 @@
       generate12DigitAccNum();
 
       leads.splice(idx, 1);
-      saveSavingsLeads(leads);
+      await saveSavingsLeads(leads);
       document.getElementById('add-account-form').scrollIntoView({ behavior: 'smooth' });
       alert(`Loaded application for ${lead.name}. Review deposit details and commit.`);
     };
 
-    window.dismissSavingsLead = function(idx) {
-      const leads = getSavingsLeads();
+    window.dismissSavingsLead = async function(idx) {
+      const leads = await getSavingsLeads();
       leads.splice(idx, 1);
-      saveSavingsLeads(leads);
+      await saveSavingsLeads(leads);
     };
 
-    function getAdminRequests() { return JSON.parse(localStorage.getItem('idbi_admin_approval_requests') || '[]'); }
-    function saveAdminRequests(reqs) { localStorage.setItem('idbi_admin_approval_requests', JSON.stringify(reqs)); renderUnifiedRequests(); }
+    async function getAdminRequests() {
+      try {
+        const res = await fetch(`${API_BASE}/requests`);
+        return await res.json();
+      } catch {
+        return [];
+      }
+    }
 
-    function renderUnifiedRequests() {
-      const reqs = getAdminRequests();
+    async function saveAdminRequests(reqs) {
+      await fetch(`${API_BASE}/requests`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqs)
+      });
+      renderUnifiedRequests();
+    }
+
+    async function renderUnifiedRequests() {
+      const reqs = await getAdminRequests();
       const container = document.getElementById('unified-requests-list');
       document.getElementById('badge-requests-count').textContent = reqs.length;
       container.innerHTML = '';
@@ -604,18 +638,18 @@
       });
     }
 
-    window.approveRequestDirect = function(idx) {
-      const reqs = getAdminRequests();
+    window.approveRequestDirect = async function(idx) {
+      const reqs = await getAdminRequests();
       const r = reqs[idx];
       if (!r) return;
 
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const target = accounts.find(a => a.accNum === r.account || (a.custId && a.custId.toLowerCase() === r.account.toLowerCase()));
 
       if (!target) {
         alert('Target account not found.');
         reqs.splice(idx, 1);
-        saveAdminRequests(reqs);
+        await saveAdminRequests(reqs);
         return;
       }
 
@@ -628,22 +662,22 @@
         alert(`Account ${target.accNum} unblocked.`);
       }
 
-      saveAccounts(accounts);
+      await saveAccounts(accounts);
       reqs.splice(idx, 1);
-      saveAdminRequests(reqs);
+      await saveAdminRequests(reqs);
     };
 
-    window.rejectRequestDirect = function(idx) {
-      const reqs = getAdminRequests();
+    window.rejectRequestDirect = async function(idx) {
+      const reqs = await getAdminRequests();
       const r = reqs[idx];
       if (confirm(`Reject request ${r.refId}?`)) {
         reqs.splice(idx, 1);
-        saveAdminRequests(reqs);
+        await saveAdminRequests(reqs);
       }
     };
 
-    window.openManualOverrideDialog = function(idx) {
-      const reqs = getAdminRequests();
+    window.openManualOverrideDialog = async function(idx) {
+      const reqs = await getAdminRequests();
       currentOverrideItem = { req: reqs[idx], index: idx };
       const r = reqs[idx];
       document.getElementById('override-modal-title').textContent = `Override ${r.refId}`;
@@ -652,27 +686,27 @@
       document.getElementById('modal-manual-override').classList.remove('hidden');
     };
 
-    window.commitManualOverride = function() {
+    window.commitManualOverride = async function() {
       if (!currentOverrideItem) return;
       const val = document.getElementById('input-override-val').value.trim();
       const r = currentOverrideItem.req;
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const target = accounts.find(a => a.accNum === r.account || (a.custId && a.custId.toLowerCase() === r.account.toLowerCase()));
 
       if (target) {
         target.mpin = val;
         target.isFrozen = false;
-        saveAccounts(accounts);
+        await saveAccounts(accounts);
         alert(`Override Committed for account ${target.accNum}.`);
       }
-      const reqs = getAdminRequests();
+      const reqs = await getAdminRequests();
       reqs.splice(currentOverrideItem.index, 1);
-      saveAdminRequests(reqs);
+      await saveAdminRequests(reqs);
       closeModalDirect('modal-manual-override');
     };
 
     // Account Creation
-    document.getElementById('add-account-form').addEventListener('submit', (e) => {
+    document.getElementById('add-account-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('holder-name').value.trim();
       const custId = document.getElementById('holder-cust-id').value.trim();
@@ -682,13 +716,13 @@
       const secMother = document.getElementById('holder-sec-mother').value.trim();
       const balance = parseFloat(document.getElementById('init-balance').value);
 
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       if (accounts.some(a => a.custId.toLowerCase() === custId.toLowerCase())) {
         return alert(`Cust ID "${custId}" is already assigned.`);
       }
 
       accounts.push({ id: Date.now().toString(), name, custId, accNum, mpin, type: 'Savings Account', balance, isFrozen: false, secBirth, secMother, cardTier: 'auto' });
-      saveAccounts(accounts);
+      await saveAccounts(accounts);
       e.target.reset();
       generate12DigitAccNum();
       alert(`Customer CIF provisioned!\nAccount: ${accNum}\nCust ID: ${custId}`);
@@ -724,21 +758,21 @@
       card.classList.remove('hidden');
     }
 
-    document.getElementById('btn-search').addEventListener('click', () => {
+    document.getElementById('btn-search').addEventListener('click', async () => {
       const q = document.getElementById('search-acc').value.trim().toLowerCase();
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const found = accounts.find(a => a.accNum === q || a.custId.toLowerCase() === q);
       if (found) displayAccountCard(found);
       else alert('Account not found.');
     });
 
-    document.getElementById('btn-toggle-freeze').addEventListener('click', () => {
+    document.getElementById('btn-toggle-freeze').addEventListener('click', async () => {
       if (!currentSelectedAcc) return;
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
       if (target) {
         target.isFrozen = !target.isFrozen;
-        saveAccounts(accounts);
+        await saveAccounts(accounts);
         alert(`Account ${target.accNum} status: ${target.isFrozen ? 'FROZEN' : 'ACTIVE'}`);
       }
     });
@@ -750,14 +784,14 @@
       document.getElementById('modal-card-tier').classList.remove('hidden');
     });
 
-    window.saveCardTierSetting = function() {
+    window.saveCardTierSetting = async function() {
       if (!currentSelectedAcc) return;
       const tier = document.getElementById('select-card-tier').value;
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
       if (target) {
         target.cardTier = tier;
-        saveAccounts(accounts);
+        await saveAccounts(accounts);
         closeModalDirect('modal-card-tier');
         alert(`Debit Card Scheme for ${target.name} updated to: ${getCardTierLabel(target)}`);
       }
@@ -770,16 +804,16 @@
       document.getElementById('modal-change-secq').classList.remove('hidden');
     });
 
-    window.saveSecurityAnswers = function() {
+    window.saveSecurityAnswers = async function() {
       if (!currentSelectedAcc) return;
       const birth = document.getElementById('input-edit-birth').value.trim();
       const mother = document.getElementById('input-edit-mother').value.trim();
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
       if (target) {
         target.secBirth = birth;
         target.secMother = mother;
-        saveAccounts(accounts);
+        await saveAccounts(accounts);
         closeModalDirect('modal-change-secq');
         alert('Security answers saved.');
       }
@@ -791,17 +825,17 @@
       document.getElementById('modal-change-custid').classList.remove('hidden');
     });
 
-    window.saveNewCustId = function() {
+    window.saveNewCustId = async function() {
       if (!currentSelectedAcc) return;
       const newId = document.getElementById('input-new-custid').value.trim();
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       if (accounts.some(a => a.accNum !== currentSelectedAcc.accNum && a.custId.toLowerCase() === newId.toLowerCase())) {
         return alert(`Cust ID "${newId}" is already assigned.`);
       }
       const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
       if (target) {
         target.custId = newId;
-        saveAccounts(accounts);
+        await saveAccounts(accounts);
         closeModalDirect('modal-change-custid');
         alert(`Cust ID updated to ${newId}`);
       }
@@ -813,15 +847,15 @@
       document.getElementById('modal-change-pin').classList.remove('hidden');
     });
 
-    window.saveNewMpinDirect = function() {
+    window.saveNewMpinDirect = async function() {
       if (!currentSelectedAcc) return;
       const pin = document.getElementById('input-new-pin').value.trim();
-      if (pin.length !== 4 || isNaN(pin)) return alert('4-digit PIN required.');
-      const accounts = getAccounts();
+      if (!pin || pin.length !== 4 || isNaN(pin)) return alert('4-digit PIN required.');
+      const accounts = await getAccounts();
       const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
       if (target) {
         target.mpin = pin;
-        saveAccounts(accounts);
+        await saveAccounts(accounts);
         closeModalDirect('modal-change-pin');
         alert('MPIN updated.');
       }
@@ -834,7 +868,7 @@
       document.getElementById('modal-security-delete').classList.remove('hidden');
     });
 
-    window.executeSecurePurge = function() {
+    window.executeSecurePurge = async function() {
       if (!currentSelectedAcc) return;
       const officer = document.getElementById('input-del-officer').value.trim();
       const token = document.getElementById('input-del-token').value.trim().toUpperCase();
@@ -844,16 +878,17 @@
         return alert('Security clearance failed.');
       }
 
-      let accounts = getAccounts().filter(a => a.accNum !== currentSelectedAcc.accNum);
-      saveAccounts(accounts);
+      let accounts = await getAccounts();
+      accounts = accounts.filter(a => a.accNum !== currentSelectedAcc.accNum);
+      await saveAccounts(accounts);
       currentSelectedAcc = null;
       document.getElementById('account-card').classList.add('hidden');
       closeModalDirect('modal-security-delete');
       alert('Account permanently purged.');
     };
 
-    function renderTable() {
-      const accounts = getAccounts();
+    async function renderTable() {
+      const accounts = await getAccounts();
       const tbody = document.getElementById('accounts-table-body');
       tbody.innerHTML = '';
       accounts.forEach((acc) => {
@@ -866,10 +901,11 @@
           <td class="p-3 text-center text-xs font-bold ${getCardTierLabel(acc).includes('Gold') ? 'text-amber-400' : 'text-slate-300'}">${getCardTierLabel(acc).includes('Gold') ? 'GOLD' : 'PLATINUM'}</td>
           <td class="p-3 text-center">${acc.isFrozen ? '<span class="text-red-400 font-bold">FROZEN</span>' : '<span class="text-emerald-400 font-bold">ACTIVE</span>'}</td>
           <td class="p-3 text-right font-bold text-emerald-400">₹${Number(acc.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-          <td class="p-3 text-center"><button onclick="displayAccountCard(getAccounts().find(a=>a.accNum==='${acc.accNum}'))" class="text-xs text-orange-400 font-bold">[MANAGE]</button></td>
+          <td class="p-3 text-center"><button onclick="displayAccountCard(currentAccountsList.find(a=>a.accNum==='${acc.accNum}'))" class="text-xs text-orange-400 font-bold">[MANAGE]</button></td>
         `;
         tbody.appendChild(tr);
       });
+      window.currentAccountsList = accounts;
     }
 
     setInterval(() => {
