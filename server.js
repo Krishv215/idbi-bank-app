@@ -8,14 +8,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from public directory
+// Serve frontend assets from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Twilio Setup
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
 
-// ================= CENTRAL SHARED DATABASE IN SERVER MEMORY =================
+// ================= CENTRAL SERVER-SIDE DATABASE =================
 let accounts = [
   { id: '1', name: 'Rahul Sharma', custId: '1001', accNum: '102345678901', mpin: '1234', type: 'Savings Account', balance: 75420.50, isFrozen: false, secBirth: 'Mumbai', secMother: 'Sharma', cardTier: 'auto', isCardLocked: false, cardPin: '4321' },
   { id: '2', name: 'Pooja Verma', custId: '1002', accNum: '102345678902', mpin: '5678', type: 'Salary Account', balance: 11492000.00, isFrozen: false, secBirth: 'Delhi', secMother: 'Verma', cardTier: 'auto', isCardLocked: false, cardPin: '9876' }
@@ -30,11 +30,13 @@ let adminApprovalRequests = [];
 let savingsLeads = [];
 const otpStore = new Map();
 
-// ================= HTML ROUTES =================
+// ================= ROUTE DELIVERIES =================
+// Customer App
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'idbi_mobile_customer.html'));
 });
 
+// Admin CBS Portal
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'idbi_admin_portal.html'));
 });
@@ -59,7 +61,9 @@ app.post('/api/send-otp', async (req, res) => {
         to: formattedPhone
       });
       smsDispatched = true;
+      console.log(`[Twilio SMS] Sent OTP to ${formattedPhone}`);
     } catch (twilioErr) {
+      console.warn(`[Twilio Warning]: ${twilioErr.message}`);
       console.log(`[Dev OTP for ${formattedPhone}]: ${generatedOtp}`);
     }
 
@@ -82,12 +86,12 @@ app.post('/api/verify-otp', async (req, res) => {
     if (!record || Date.now() > record.expiresAt) {
       return res.status(400).json({ success: false, message: 'OTP expired or not requested.' });
     }
-    if (record.otp !== otp.trim()) {
+    if (record.otp !== (otp || '').trim()) {
       return res.status(400).json({ success: false, message: 'Incorrect OTP.' });
     }
 
     otpStore.delete(formattedPhone);
-    return res.json({ success: true, message: 'Verified successfully.' });
+    return res.json({ success: true, message: 'Authentication successful.' });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
@@ -97,8 +101,7 @@ app.post('/api/verify-otp', async (req, res) => {
 app.get('/api/accounts', (req, res) => res.json(accounts));
 
 app.post('/api/accounts', (req, res) => {
-  const newAcc = req.body;
-  accounts.push(newAcc);
+  accounts.push(req.body);
   res.json({ success: true, accounts });
 });
 
@@ -111,8 +114,12 @@ app.put('/api/accounts', (req, res) => {
 app.get('/api/transactions', (req, res) => res.json(transactions));
 
 app.post('/api/transactions', (req, res) => {
-  const newTx = req.body;
-  transactions.push(newTx);
+  transactions.push(req.body);
+  res.json({ success: true, transactions });
+});
+
+app.put('/api/transactions', (req, res) => {
+  transactions = req.body;
   res.json({ success: true, transactions });
 });
 
