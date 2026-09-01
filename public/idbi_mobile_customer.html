@@ -1,1 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>IDBI Bank GO Mobile+</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            idbigreen: '#005934',
+            idbidarkgreen: '#003d24',
+            idbiorange: '#e65100',
+            idbibrightorange: '#f57c00',
+            idbiyellow: '#ffb300'
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            cardmono: ['OCR A Extended', 'Share Tech Mono', 'Courier New', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    html, body {
+      touch-action: auto !important;
+      -webkit-touch-callout: default !important;
+      margin: 0;
+      padding: 0;
+      background-color: #03070d;
+    }
 
+    input, select, textarea {
+      -webkit-user-select: text !important;
+      user-select: text !important;
+      pointer-events: auto !important;
+      cursor: text !important;
+      touch-action: auto !important;
+      font-size: 15px !important;
+    }
+
+    button {
+      cursor: pointer !important;
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+    }
+
+    .mobile-frame {
+      max-width: 420px;
+      min-height: 890px;
+      transform: translateZ(0);
+      background: radial-gradient(circle at 50% -10%, #0d1e2e 0%, #08101a 45%, #04080e 100%);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .idbi-official-logo-banner {
+      background-color: #008752;
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px 3px 5px;
+      border-radius: 4px;
+    }
+
+    .executive-balance-card {
+      background: linear-gradient(145deg, #004b2b 0%, #00361f 55%, #002213 100%);
+      border: 1px solid rgba(0, 230, 118, 0.22);
+      box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .card-perspective-container {
+      perspective: 1200px;
+    }
+
+    .card-flipper {
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+      position: relative;
+    }
+
+    .card-flipper.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 20px;
+    }
+
+    .card-face-back {
+      transform: rotateY(180deg);
+    }
+
+    .gold-card-front {
+      background: radial-gradient(circle at 30% 20%, #e6c875 0%, #d4af37 40%, #aa8012 100%);
+      border: 1.5px solid #fff2a3;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.85), inset 0 0 25px rgba(255,255,255,0.25);
+    }
+
+    .gold-card-back {
+      background: linear-gradient(135deg, #d4af37 0%, #aa8012 60%, #7d5b05 100%);
+      border: 1.5px solid #fff2a3;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.85);
+    }
+
+    .plat-card-front {
+      background: radial-gradient(circle at 30% 20%, #f1f5f9 0%, #cbd5e1 45%, #94a3b8 100%);
+      border: 1.5px solid #ffffff;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.85), inset 0 0 25px rgba(255,255,255,0.4);
+    }
+
+    .plat-card-back {
+      background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 60%, #64748b 100%);
+      border: 1.5px solid #ffffff;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.85);
+    }
+
+    .gold-emv-chip {
+      width: 44px;
+      height: 33px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #ffd777 0%, #d4af37 40%, #9b7408 100%);
+      border: 1px solid #fff5c0;
+      position: relative;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.7), 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    .embossed-card-number {
+      font-family: 'OCR A Extended', 'Share Tech Mono', monospace;
+      letter-spacing: 0.16em;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.7), 0 -1px 1px rgba(255,255,255,0.3);
+    }
+
+    .modern-box-panel {
+      background: linear-gradient(180deg, #111a28 0%, #0d1522 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+    }
+
+    .modern-input-field {
+      background: #090e16 !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
+    .modern-input-field:focus {
+      border-color: #008752 !important;
+      box-shadow: 0 0 0 1px #008752 !important;
+    }
+  </style>
+</head>
+<body id="page-body" class="flex justify-center items-center min-h-screen sm:p-4 text-slate-100 font-sans antialiased">
+
+  <!-- ==================== STAGE 0: 2FA MOBILE OTP AUTHENTICATION ==================== -->
+  <div id="otp-auth-screen" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[9990]">
+    <div class="bg-[#0e1624] border border-emerald-500/40 rounded-3xl max-w-sm w-full p-6 text-white shadow-2xl space-y-5 text-center relative z-[9995] overflow-hidden">
+      
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-1.5 text-[10.5px] text-emerald-400 font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-bold">SECURE CHANNEL</span>
+        </div>
+        <span class="text-[10px] bg-slate-800/80 text-slate-300 px-2.5 py-0.5 rounded-full font-mono border border-slate-700">
+          TLS 1.3 256-BIT
+        </span>
+      </div>
+
+      <div class="flex flex-col items-center">
+        <div class="idbi-official-logo-banner mb-2 shadow-md">
+          <svg class="w-6 h-6 mr-1.5" viewBox="0 0 100 100" fill="none">
+            <circle cx="50" cy="50" r="48" fill="white"/>
+            <circle cx="50" cy="27" r="7.5" fill="#E65100"/>
+            <rect x="44.5" y="40" width="11" height="42" rx="4" fill="#E65100"/>
+            <path d="M 33 28 C 17 40 17 68 33 80 C 23 68 23 40 33 28 Z" fill="#E65100"/>
+            <path d="M 67 28 C 83 40 83 68 67 80 C 77 68 77 40 67 28 Z" fill="#E65100"/>
+          </svg>
+          <span class="text-white font-serif font-black text-sm" style="font-family: Georgia, serif;">IDBI BANK</span>
+        </div>
+        <h2 class="text-base font-bold text-white tracking-wide">GO Mobile+ Security Access</h2>
+        <p class="text-[11px] text-slate-400 mt-0.5">Two-Factor Device & Mobile Clearance</p>
+      </div>
+
+      <!-- Step A: Enter Phone Number -->
+      <div id="otp-step-phone" class="space-y-3.5 text-left">
+        <div>
+          <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1.5 flex items-center">
+            <i class="fa-solid fa-mobile-screen mr-1.5 text-emerald-400"></i> Registered Mobile Number
+          </label>
+          <div class="flex items-center bg-[#070b12] border border-slate-700 focus-within:border-emerald-500 rounded-2xl px-3.5 py-1.5 shadow-inner">
+            <span class="text-xs font-bold text-amber-400 mr-2 font-mono">+91</span>
+            <input type="tel" id="login-phone-input" placeholder="" maxlength="10" 
+              class="w-full bg-transparent text-white py-2 text-sm font-mono font-bold focus:outline-none" />
+          </div>
+        </div>
+
+        <button type="button" onclick="requestLoginOtp()" id="btn-send-otp" 
+          class="w-full bg-[#005934] hover:bg-emerald-700 text-white py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition active:scale-95 shadow-md cursor-pointer">
+          <i class="fa-solid fa-paper-plane mr-1"></i> Send Verification Code
+        </button>
+      </div>
+
+      <!-- Step B: Enter Received OTP -->
+      <div id="otp-step-verify" class="hidden space-y-3.5 text-center">
+        <div class="bg-[#070b12] border border-slate-800 rounded-2xl p-3">
+          <p class="text-xs text-slate-300">
+            Security code sent to <b id="display-auth-phone" class="font-mono text-emerald-400"></b>
+          </p>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1.5">
+            Enter 6-Digit SMS Security Code
+          </label>
+          <input type="text" id="login-otp-input" placeholder="••••••" maxlength="6" inputmode="numeric"
+            class="w-full bg-[#070b12] border-2 border-emerald-500 text-emerald-300 py-2.5 text-center text-xl font-mono font-black tracking-[0.25em] rounded-2xl focus:outline-none shadow-inner" />
+        </div>
+
+        <button type="button" onclick="submitVerifyOtp()" id="btn-verify-otp" 
+          class="w-full bg-[#005934] hover:bg-emerald-700 text-white py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition active:scale-95 shadow-md cursor-pointer">
+          <i class="fa-solid fa-shield-check mr-1"></i> Verify & Open App
+        </button>
+
+        <div class="flex justify-between items-center text-[11px] pt-1 text-slate-400">
+          <span onclick="resetOtpStep()" class="hover:text-white underline cursor-pointer">Change Number</span>
+          <span onclick="requestLoginOtp()" class="text-orange-400 font-bold hover:underline cursor-pointer">Resend Code</span>
+        </div>
+      </div>
+
+      <p id="otp-status-msg" class="text-xs font-semibold min-h-[16px] text-red-400"></p>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN CUSTOMER APP SHELL ==================== -->
+  <div id="app-container" class="mobile-frame w-full text-slate-100 flex flex-col justify-between shadow-2xl relative overflow-hidden sm:rounded-[36px] border-0 sm:border-[5px] border-[#182333] min-h-screen sm:min-h-[890px]">
+
+    <!-- Status Bar -->
+    <div class="px-6 pt-3 pb-1 flex justify-between items-center text-[12px] font-semibold text-slate-400 tracking-tight border-b border-white/[0.04]">
+      <span id="system-time">07:29 PM</span>
+      <div class="flex items-center space-x-2">
+        <span class="bg-emerald-600 text-[10px] px-1.5 py-0.5 rounded-full text-white font-mono font-bold">01:33</span>
+        <i class="fa-solid fa-wifi text-[10px]"></i>
+        <i class="fa-solid fa-battery-three-quarters text-xs"></i>
+      </div>
+    </div>
+
+    <!-- ==================== SCREEN 1: LOGIN SCREEN ==================== -->
+    <div id="screen-home" class="flex flex-col flex-1 pb-4 overflow-y-auto no-scrollbar">
+      <div class="px-4 py-2.5 flex items-center justify-between border-b border-white/[0.06] bg-[#0b131f]/70">
+        <div class="flex items-center space-x-3">
+          <button class="text-orange-500 text-lg p-1"><i class="fa-solid fa-bars"></i></button>
+          <div class="idbi-official-logo-banner">
+            <svg class="w-6 h-6 mr-1.5" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="50" r="48" fill="white"/>
+              <circle cx="50" cy="27" r="7.5" fill="#E65100"/>
+              <rect x="44.5" y="40" width="11" height="42" rx="4" fill="#E65100"/>
+              <path d="M 33 28 C 17 40 17 68 33 80 C 23 68 23 40 33 28 Z" fill="#E65100"/>
+              <path d="M 67 28 C 83 40 83 68 67 80 C 77 68 77 40 67 28 Z" fill="#E65100"/>
+            </svg>
+            <span class="text-white font-serif font-black text-sm" style="font-family: Georgia, serif;">IDBI BANK</span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4 text-orange-500 text-base">
+          <button onclick="toggleAppTheme()" class="p-1"><i id="theme-icon" class="fa-solid fa-sun text-sm text-amber-400"></i></button>
+        </div>
+      </div>
+
+      <div class="px-7 pt-6 pb-2 text-center">
+        <h1 class="text-[26px] font-semibold text-emerald-400 mb-6">Good Evening</h1>
+        <div class="space-y-4 max-w-[290px] mx-auto">
+          <input type="text" id="input-cust-id" placeholder="Enter Cust ID or A/C"
+            class="w-full bg-[#0d1726] border-2 border-slate-700/80 text-white px-5 py-3 text-sm text-center rounded-full focus:outline-none focus:border-emerald-500 shadow-inner" />
+          <input type="password" id="input-mpin" maxlength="4" placeholder="Enter 4 digit MPIN" inputmode="numeric"
+            class="w-full bg-[#0d1726] border-2 border-slate-700/80 text-white px-5 py-3 text-sm text-center font-mono font-bold rounded-full focus:outline-none focus:border-emerald-500 shadow-inner" />
+          <button id="btn-login" class="w-full bg-[#005934] hover:bg-[#007345] text-white py-3 rounded-full text-xs font-bold uppercase shadow-lg transition active:scale-95">Login to Account</button>
+        </div>
+
+        <div class="mt-5 space-y-2 text-xs">
+          <p class="text-orange-400 font-bold flex items-center justify-center space-x-1.5">
+            <span onclick="openActivateAppModal()" class="cursor-pointer hover:underline text-amber-400">Activate App</span>
+            <span class="text-slate-500 font-normal">/</span>
+            <span onclick="openResetMpinModal()" class="cursor-pointer hover:underline text-orange-400">Reset MPIN</span>
+          </p>
+          <p onclick="openSecurityQuestionsModal()" class="cursor-pointer text-blue-400 font-bold hover:underline py-0.5">
+            Unlock / Reset Security Questions
+          </p>
+        </div>
+      </div>
+
+      <div class="px-4 py-4 grid grid-cols-4 gap-2 text-center">
+        <div class="cursor-pointer flex flex-col items-center" onclick="openPrivateBankingOnboarding()">
+          <div class="w-[54px] h-[54px] rounded-2xl flex items-center justify-center text-xl mb-1.5 bg-gradient-to-br from-amber-500/20 to-[#005934]/30 border border-amber-400/30 text-amber-300">
+            <i class="fa-solid fa-crown text-lg"></i>
+          </div>
+          <span class="text-[10.5px] leading-tight text-amber-200 font-bold">Open a<br/>Savings Account</span>
+        </div>
+        <div class="cursor-pointer flex flex-col items-center" onclick="alert('Scan & Pay initialized.')">
+          <div class="w-[54px] h-[54px] rounded-2xl flex items-center justify-center text-xl mb-1.5 bg-[#005934]/20 border border-[#005934]/40 text-emerald-400"><i class="fa-solid fa-qrcode"></i></div>
+          <span class="text-[10.5px] text-slate-300 font-medium">Scan & Pay</span>
+        </div>
+        <div class="cursor-pointer flex flex-col items-center" onclick="alert('Please log in to decrypt your mPassbook statement.')">
+          <div class="w-[54px] h-[54px] rounded-2xl flex items-center justify-center text-xl mb-1.5 bg-[#005934]/20 border border-[#005934]/40 text-emerald-400"><i class="fa-solid fa-mobile-screen-button"></i></div>
+          <span class="text-[10.5px] text-slate-300 font-medium">mPassbook</span>
+        </div>
+        <div class="cursor-pointer flex flex-col items-center" onclick="alert('Locating nearest IDBI ATM & e-Lounge hub.')">
+          <div class="w-[54px] h-[54px] rounded-2xl flex items-center justify-center text-xl mb-1.5 bg-[#005934]/20 border border-[#005934]/40 text-emerald-400"><i class="fa-solid fa-location-dot"></i></div>
+          <span class="text-[10.5px] text-slate-300 font-medium">Locate Us</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCREEN 2: DASHBOARD ==================== -->
+    <div id="screen-dashboard" class="hidden flex-col flex-1 text-slate-100 overflow-hidden">
+      
+      <!-- Top App Bar -->
+      <div class="bg-[#004f2e] px-4 py-3 flex items-center justify-between shadow-md border-b border-emerald-500/20">
+        <div class="flex items-center space-x-3">
+          <button id="btn-back-home" class="text-white text-sm hover:text-green-200 p-1">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <span class="font-bold text-[14px] tracking-wide text-white">IDBI GO Mobile+</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="toggleAppTheme()" class="text-orange-400 hover:text-orange-300 px-2 py-1">
+            <i id="theme-dash-icon" class="fa-solid fa-sun text-sm text-amber-400"></i>
+          </button>
+          <span id="live-cbs-status-badge" class="text-[10.5px] bg-[#002f1a] text-emerald-300 border border-emerald-400/40 px-2.5 py-0.5 rounded-full font-semibold font-mono">Live CBS</span>
+          <button id="btn-logout" class="text-[11px] bg-red-600/90 hover:bg-red-700 px-3 py-1.5 rounded-lg text-white font-bold tracking-wider cursor-pointer">LOGOUT</button>
+        </div>
+      </div>
+
+      <!-- Scrollable Dashboard Content -->
+      <div class="p-4 flex-1 space-y-4 overflow-y-auto no-scrollbar max-h-[770px]">
+        
+        <!-- Classic Executive Account Balance Card -->
+        <div class="executive-balance-card rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
+          <div class="flex justify-between items-start relative z-10">
+            <div>
+              <span class="text-[9.5px] uppercase tracking-widest text-emerald-300 font-bold bg-[#002b17] px-2.5 py-0.5 rounded-md border border-emerald-500/20">PRIMARY ACCOUNT</span>
+              <h2 id="dash-holder-name" class="text-lg font-bold mt-1.5 tracking-wide text-white">-</h2>
+              <p class="text-xs text-emerald-100 font-mono tracking-widest mt-0.5">A/C: <span id="dash-acc-num">01231040005678</span></p>
+            </div>
+            <div class="text-right">
+              <div class="bg-white text-[#005934] px-2.5 py-1 rounded font-black text-[10px] tracking-tighter shadow-sm">IDBI BANK</div>
+              <span id="dash-frozen-label" class="inline-block text-[9.5px] text-emerald-300 font-bold mt-1">KYC Verified</span>
+            </div>
+          </div>
+
+          <div class="mt-5 relative z-10 flex justify-between items-end border-t border-emerald-500/20 pt-3">
+            <div>
+              <p class="text-[9.5px] uppercase tracking-wider text-emerald-200/90 font-medium">EFFECTIVE AVAILABLE BALANCE</p>
+              <h1 class="text-[28px] font-black tracking-tight text-white mt-0.5 font-mono" id="dash-balance">₹0.00</h1>
+            </div>
+            <span class="text-[10px] font-mono text-emerald-300/80 font-bold">INR &bull; ACTIVE</span>
+          </div>
+        </div>
+
+        <!-- 3 Interactive Tabs -->
+        <div class="grid grid-cols-3 gap-2.5 text-center text-xs">
+          <div onclick="switchBankingTab('transfer')" id="btn-tab-transfer" class="cursor-pointer modern-box-panel border-2 border-orange-500 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95">
+            <div class="w-11 h-11 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 mb-1 text-lg">
+              <i class="fa-solid fa-money-bill-transfer"></i>
+            </div>
+            <span class="text-[11px] font-bold text-white">Fund Transfer</span>
+            <span class="text-[8.5px] text-orange-400 font-mono font-semibold">IMPS / NEFT</span>
+          </div>
+
+          <div onclick="switchBankingTab('billpay')" id="btn-tab-billpay" class="cursor-pointer modern-box-panel border border-slate-700/60 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95">
+            <div class="w-11 h-11 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-1 text-lg">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <span class="text-[11px] font-bold text-white">Bill Pay</span>
+            <span class="text-[8.5px] text-emerald-400 font-mono font-semibold">Recharge/Bills</span>
+          </div>
+
+          <div onclick="switchBankingTab('debitcard')" id="btn-tab-debitcard" class="cursor-pointer modern-box-panel border border-slate-700/60 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95">
+            <div class="w-11 h-11 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 mb-1 text-lg">
+              <i class="fa-solid fa-credit-card"></i>
+            </div>
+            <span class="text-[11px] font-bold text-white" id="card-tab-title">Debit Card</span>
+            <span class="text-[8.5px] text-amber-400 font-mono font-semibold" id="card-tab-sub">Gold / Platinum</span>
+          </div>
+        </div>
+
+        <!-- ================= TAB PANELS ================= -->
+
+        <!-- TAB 1: FUND TRANSFER PANEL -->
+        <div id="panel-transfer" class="modern-box-panel p-4 rounded-2xl space-y-3.5 shadow-md">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-paper-plane mr-1.5"></i> Instant Fund Transfer (IMPS / NEFT)
+            </h3>
+            <span class="text-[10px] bg-orange-950 text-orange-300 font-bold px-2 py-0.5 rounded border border-orange-500/30">24x7 Live</span>
+          </div>
+          
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1 font-semibold">Beneficiary 12-Digit Account Number</label>
+            <input type="text" id="dash-to-acc" placeholder="Enter Beneficiary Account Number"
+              class="w-full modern-input-field text-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none font-mono tracking-wider shadow-inner" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1 font-semibold">Amount to Transfer (₹)</label>
+            <input type="number" id="dash-to-amt" placeholder="Enter Amount (e.g. 5000)"
+              class="w-full modern-input-field text-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none font-mono font-bold shadow-inner" />
+          </div>
+
+          <button type="button" onclick="executeDashboardTransfer()" class="w-full bg-[#005934] hover:bg-emerald-700 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition active:scale-98 cursor-pointer">
+            Authorize & Transfer Now
+          </button>
+        </div>
+
+        <!-- TAB 2: BILL PAY PANEL -->
+        <div id="panel-billpay" class="hidden modern-box-panel p-4 rounded-2xl space-y-3.5 shadow-md">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-bolt mr-1.5 text-yellow-400"></i> BHARAT BILL PAYMENT SYSTEM (BBPS)
+            </h3>
+            <span class="text-[10px] bg-emerald-950 text-emerald-300 font-bold px-2 py-0.5 rounded border border-emerald-500/30">Instant Credit</span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1 font-semibold">Select Biller Category</label>
+            <select id="bill-category" onchange="updateBillerPlaceholder()" class="w-full modern-input-field text-white text-xs px-3.5 py-2.5 rounded-xl focus:outline-none">
+              <option value="Electricity">Electricity Bill (Torrent / PGVCL / DGVCL)</option>
+              <option value="Mobile">Mobile Recharge (Jio / Airtel / Vi)</option>
+              <option value="FASTag">FASTag Toll Recharge (NHAI / IDBI FASTag)</option>
+              <option value="DTH">DTH TV Subscription (Tata Play / Airtel DTH)</option>
+            </select>
+          </div>
+
+          <div>
+            <label id="lbl-consumer-id" class="block text-[11px] text-slate-300 mb-1 font-semibold">Consumer Number / Service ID</label>
+            <input type="text" id="bill-consumer-no" placeholder="Enter Consumer Service No." 
+              class="w-full modern-input-field text-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none font-mono shadow-inner" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1 font-semibold">Bill / Recharge Amount (₹)</label>
+            <input type="number" id="bill-amount" placeholder="Enter Payable Amount"
+              class="w-full modern-input-field text-white text-sm px-3.5 py-2.5 rounded-xl focus:outline-none font-mono font-bold shadow-inner" />
+          </div>
+
+          <button type="button" onclick="processBillPayment()" class="w-full bg-[#e65100] hover:bg-orange-700 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition active:scale-98 cursor-pointer">
+            <i class="fa-solid fa-receipt mr-1.5"></i> Pay Bill & Deduct Balance
+          </button>
+        </div>
+
+        <!-- TAB 3: DYNAMIC GOLD / PLATINUM 3D FLIPPABLE DEBIT CARD -->
+        <div id="panel-debitcard" class="hidden modern-box-panel p-4 rounded-2xl space-y-4 shadow-md">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <div class="flex items-center space-x-1.5">
+              <i class="fa-solid fa-crown text-amber-500 text-xs"></i>
+              <h3 class="text-xs font-bold uppercase tracking-wider font-mono text-amber-300" id="card-scheme-heading">
+                IDBI GOLD CREDIT / DEBIT CARD
+              </h3>
+            </div>
+            <button onclick="toggleCardSideFlip()" class="text-[10px] bg-[#070d14] text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full font-bold uppercase font-mono hover:bg-slate-800 transition">
+              <i class="fa-solid fa-rotate mr-1"></i> <span id="flip-btn-text">Flip to Back</span>
+            </button>
+          </div>
+
+          <!-- 3D Perspective Card Flipper Container -->
+          <div class="card-perspective-container w-full">
+            <div id="card-3d-flipper" class="card-flipper w-full cursor-pointer" onclick="toggleCardSideFlip()">
+              
+              <!-- FRONT FACE -->
+              <div id="card-front-face" class="card-face gold-card-front p-5 text-white relative shadow-2xl overflow-hidden min-h-[200px]">
+                <svg class="absolute right-0 top-0 w-full h-full opacity-25 pointer-events-none" viewBox="0 0 400 200" fill="currentColor">
+                  <path d="M 50,40 Q 80,20 110,40 T 170,40 T 230,40 T 290,40 T 350,40 Q 380,80 340,120 T 260,160 T 180,140 T 100,160 T 40,100 Z" />
+                  <circle cx="280" cy="80" r="30"/>
+                  <circle cx="100" cy="70" r="25"/>
+                  <circle cx="190" cy="110" r="20"/>
+                </svg>
+
+                <div class="flex justify-between items-start relative z-10">
+                  <div>
+                    <span class="text-[13px] font-black tracking-widest uppercase font-serif drop-shadow">IDBI BANK</span>
+                  </div>
+                  <div class="text-right">
+                    <span id="card-front-type-text" class="text-[11px] font-mono font-black tracking-wider uppercase text-white drop-shadow">GOLD DEBIT</span>
+                  </div>
+                </div>
+
+                <div class="my-3 flex items-center justify-between relative z-10">
+                  <div class="gold-emv-chip flex items-center justify-center shadow-md">
+                    <svg class="w-full h-full p-0.5" viewBox="0 0 44 33" fill="none">
+                      <rect x="1" y="1" width="42" height="31" rx="4" stroke="#8a6508" stroke-width="1"/>
+                      <line x1="14" y1="1" x2="14" y2="32" stroke="#8a6508" stroke-width="0.8"/>
+                      <line x1="30" y1="1" x2="30" y2="32" stroke="#8a6508" stroke-width="0.8"/>
+                      <line x1="1" y1="16" x2="43" y2="16" stroke="#8a6508" stroke-width="0.8"/>
+                      <rect x="17" y="10" width="10" height="13" rx="2" fill="#e5bf4f" stroke="#8a6508" stroke-width="0.8"/>
+                    </svg>
+                  </div>
+
+                  <div class="w-10 h-7 rounded bg-gradient-to-tr from-slate-200 via-slate-400 to-slate-100 border border-white/60 shadow-sm flex items-center justify-center text-[8px] font-bold text-slate-800 font-mono">
+                    <i class="fa-solid fa-dove text-xs opacity-75"></i>
+                  </div>
+                </div>
+
+                <div class="relative z-10 mt-1">
+                  <p id="card-virtual-number" class="embossed-card-number text-lg font-black text-white drop-shadow tracking-widest">
+                    4592 1084 3942 5678
+                  </p>
+                </div>
+
+                <div class="flex justify-between items-end mt-2 text-[10.5px] relative z-10 font-mono font-bold">
+                  <div>
+                    <p class="text-[7.5px] uppercase tracking-wider text-white/80">CARDMEMBER NAME</p>
+                    <p id="card-virtual-name" class="uppercase tracking-wider text-white text-xs drop-shadow">-</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-[7.5px] uppercase tracking-wider text-white/80">VALID THRU</p>
+                    <p class="text-white text-xs font-bold drop-shadow">12/30</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- BACK FACE -->
+              <div id="card-back-face" class="card-face card-face-back gold-card-back text-white absolute inset-0 shadow-2xl overflow-hidden min-h-[200px] flex flex-col justify-between">
+                <div class="w-full h-10 bg-[#161616] mt-3 shadow-inner"></div>
+
+                <div class="px-5 my-2">
+                  <div class="flex items-center">
+                    <div class="flex-1 h-7 bg-white/90 border border-slate-300 flex items-center px-3">
+                      <span class="text-[9px] font-mono text-slate-500 italic">Authorized Signature &bull; Not Valid Unless Signed</span>
+                    </div>
+                    <div class="w-12 h-7 bg-white text-slate-900 border-l border-slate-400 font-mono font-black text-xs flex items-center justify-center">
+                      <span id="card-virtual-cvv">501</span>
+                    </div>
+                  </div>
+
+                  <p class="text-[7.5px] text-white/80 font-sans leading-tight mt-1.5">
+                    This card is property of IDBI Bank Ltd. If found, please return to any IDBI branch or contact helpline 1800-209-4324.
+                  </p>
+                </div>
+
+                <div class="px-5 pb-2.5 flex justify-between items-center text-[9px] font-mono font-bold text-white/90 border-t border-white/20 pt-1">
+                  <span>24x7 HELPLINE: 1800-209-4324</span>
+                  <span class="italic">ELECTRONIC USE ONLY</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card Controls -->
+          <div class="space-y-2.5 pt-1">
+            <div class="flex justify-between items-center bg-[#090e16] p-3 rounded-xl border border-slate-800">
+              <div>
+                <p class="text-xs font-bold text-white">Temporary Card Security Lock</p>
+                <p class="text-[10px] text-slate-400">Freeze international POS, online & ATM</p>
+              </div>
+              <button type="button" id="btn-card-toggle" onclick="toggleDebitCardLock()" class="bg-slate-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold">
+                Lock Card
+              </button>
+            </div>
+
+            <div class="bg-[#090e16] p-3 rounded-xl border border-slate-800 space-y-2">
+              <p class="text-xs font-bold text-white">Instant 4-Digit Card PIN Reset</p>
+              <div class="flex gap-2">
+                <input type="password" id="input-new-atmpin" maxlength="4" placeholder="New PIN"
+                  class="flex-1 bg-[#121927] border border-slate-700 text-white text-xs px-3 py-2 rounded-xl text-center font-mono font-bold" />
+                <button type="button" onclick="updateDebitCardPin()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-4 py-2 rounded-xl font-bold">
+                  Update
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- mPassbook Statement -->
+        <div class="modern-box-panel p-4 rounded-2xl shadow-sm">
+          <div class="flex justify-between items-center mb-3 border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">mPassbook Recent Transactions</h3>
+            <span class="text-[10px] text-slate-400 font-mono">LIVE STATEMENT</span>
+          </div>
+          <div id="customer-tx-list" class="space-y-2 max-h-52 overflow-y-auto no-scrollbar"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-activate-app" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0e1624] border border-slate-700 rounded-3xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-base font-bold text-amber-400 uppercase text-center">Device Activation Request</h3>
+        <input type="text" id="act-cust-id" placeholder="Cust ID or 12-Digit A/C" class="w-full p-2.5 text-xs rounded-xl modern-input-field text-white font-mono" />
+        <input type="text" id="act-card-num" maxlength="16" placeholder="16-Digit Debit Card" class="w-full p-2.5 text-xs rounded-xl modern-input-field text-white font-mono" />
+        <input type="password" id="act-new-mpin" maxlength="4" placeholder="Desired 4-Digit MPIN" class="w-full p-2.5 text-xs rounded-xl bg-[#090e16] border border-amber-500 text-white font-mono text-center font-bold" />
+        <div class="flex gap-2 pt-1">
+          <button onclick="dispatchActivationRequest()" class="flex-1 bg-amber-600 text-white text-xs font-bold py-2.5 rounded-xl uppercase">Verify & Submit</button>
+          <button onclick="closeModalDirect('modal-activate-app')" class="bg-slate-800 text-slate-300 text-xs px-4 py-2.5 rounded-xl font-bold uppercase">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-reset-mpin-direct" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0e1624] border border-slate-700 rounded-3xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-base font-bold text-orange-400 uppercase text-center">Reset MPIN Request</h3>
+        <input type="text" id="reset-mpin-acc" placeholder="Customer ID or 12-Digit Account" class="w-full p-2.5 text-xs rounded-xl modern-input-field text-white font-mono" />
+        <input type="password" id="reset-mpin-new" maxlength="4" placeholder="Requested New 4-Digit MPIN" class="w-full p-2.5 text-xs rounded-xl bg-[#090e16] border border-orange-400 text-white text-center font-mono font-bold" />
+        <div class="flex gap-2 pt-1">
+          <button onclick="dispatchMpinResetRequest()" class="flex-1 bg-orange-600 text-white text-xs font-bold py-2.5 rounded-xl uppercase">Submit Request</button>
+          <button onclick="closeModalDirect('modal-reset-mpin-direct')" class="bg-slate-800 text-slate-300 text-xs px-4 py-2.5 rounded-xl font-bold uppercase">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-security-questions" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0e1624] border border-slate-700 rounded-3xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-base font-bold text-blue-400 uppercase text-center">Account Unlock Protocol</h3>
+        <div id="stage-sec-form" class="space-y-3">
+          <input type="text" id="sec-cust-id" placeholder="Customer ID or 12-Digit Account" class="w-full p-2.5 text-xs rounded-xl modern-input-field text-white font-mono" />
+          <input type="text" id="sec-ans-1" placeholder="Place of Birth (City)" class="w-full p-2.5 text-xs rounded-xl modern-input-field text-white" />
+          <input type="text" id="sec-ans-2" placeholder="Mother's Maiden Name" class="w-full p-2.5 text-xs rounded-xl modern-input-field text-white" />
+          <div class="flex gap-2 pt-1">
+            <button onclick="dispatchSecurityUnlockRequest()" class="flex-1 bg-blue-600 text-white text-xs font-bold py-2.5 rounded-xl uppercase">Verify & Unlock</button>
+            <button onclick="closeModalDirect('modal-security-questions')" class="bg-slate-800 text-slate-300 text-xs px-4 py-2.5 rounded-xl font-bold uppercase">Cancel</button>
+          </div>
+        </div>
+        <div id="stage-sec-fallback" class="hidden space-y-3">
+          <p class="text-xs text-amber-400 font-bold">Questions Not Configured</p>
+          <input type="text" id="sec-fallback-acc" readonly class="w-full p-2 text-xs rounded-xl bg-slate-900 font-mono text-emerald-400 font-bold" />
+          <input type="tel" id="sec-fallback-phone" maxlength="10" placeholder="Your 10-Digit Mobile Number" class="w-full p-2.5 text-xs rounded-xl bg-slate-900 border border-amber-500 text-white font-mono font-bold" />
+          <button onclick="dispatchFallbackUnlockRequest()" class="w-full bg-amber-600 text-white text-xs font-bold py-2.5 rounded-xl uppercase">Submit Contact</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-savings-onboarding" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0e1624] border border-amber-500/40 rounded-3xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h2 class="text-base font-bold text-center text-amber-400 uppercase">Private Banking Application</h2>
+        <input type="text" id="input-lead-name" placeholder="Your Full Name" class="w-full p-2.5 text-xs rounded-xl modern-input-field text-white" />
+        <input type="tel" id="input-lead-phone" maxlength="10" placeholder="10-Digit Mobile Number" class="w-full p-2.5 text-xs rounded-xl modern-input-field text-white font-mono" />
+        <div class="flex gap-2 pt-1">
+          <button onclick="submitPrivateBankingLead()" class="flex-1 bg-gradient-to-r from-amber-600 to-yellow-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs uppercase">Request Callback</button>
+          <button onclick="closeModalDirect('modal-savings-onboarding')" class="bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold uppercase">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const OTP_API_BASE = 'http://localhost:5000/api';
+    let currentAuthPhone = '';
+    let isCardFlipped = false;
+    let activeAccount = null;
+
+    function getAccounts() { return JSON.parse(localStorage.getItem('idbi_demo_accounts') || '[]'); }
+    function saveAccounts(accs) { localStorage.setItem('idbi_demo_accounts', JSON.stringify(accs)); }
+    function getTransactions() { return JSON.parse(localStorage.getItem('idbi_demo_transactions') || '[]'); }
+    function saveTransactions(txns) { localStorage.setItem('idbi_demo_transactions', JSON.stringify(txns)); }
+
+    // ================= REAL-TIME SYNC ENGINE (CROSS-TAB + POLLING) =================
+    function refreshActiveAccountUI() {
+      if (!activeAccount) return;
+      const accounts = getAccounts();
+      const updated = accounts.find(a => a.accNum === activeAccount.accNum || (a.custId && a.custId.toLowerCase() === activeAccount.accNum.toLowerCase()));
+
+      if (!updated) {
+        // Account was purged by admin
+        activeAccount = null;
+        document.getElementById('screen-dashboard').classList.add('hidden');
+        document.getElementById('screen-dashboard').classList.remove('flex');
+        document.getElementById('screen-home').classList.remove('hidden');
+        alert('CBS ALERT: This account record has been purged or closed by administration.');
+        return;
+      }
+
+      // Live update memory state
+      activeAccount = updated;
+
+      // Update Top Card Elements
+      document.getElementById('dash-holder-name').textContent = updated.name;
+      document.getElementById('dash-acc-num').textContent = updated.accNum;
+      document.getElementById('dash-balance').textContent = `₹${Number(updated.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+      const frozenLabel = document.getElementById('dash-frozen-label');
+      const liveCbsBadge = document.getElementById('live-cbs-status-badge');
+
+      if (updated.isFrozen) {
+        if (frozenLabel) {
+          frozenLabel.textContent = "ACCOUNT FROZEN";
+          frozenLabel.className = "inline-block text-[9.5px] text-red-400 font-bold mt-1";
+        }
+        if (liveCbsBadge) {
+          liveCbsBadge.textContent = "CBS: FROZEN";
+          liveCbsBadge.className = "text-[10.5px] bg-red-950 text-red-300 border border-red-500/40 px-2.5 py-0.5 rounded-full font-semibold font-mono";
+        }
+      } else {
+        if (frozenLabel) {
+          frozenLabel.textContent = "KYC Verified";
+          frozenLabel.className = "inline-block text-[9.5px] text-emerald-300 font-bold mt-1";
+        }
+        if (liveCbsBadge) {
+          liveCbsBadge.textContent = "Live CBS";
+          liveCbsBadge.className = "text-[10.5px] bg-[#002f1a] text-emerald-300 border border-emerald-400/40 px-2.5 py-0.5 rounded-full font-semibold font-mono";
+        }
+      }
+
+      // Re-apply live Card Tier
+      applyDynamicCardTier(updated);
+      renderCustomerPassbook(updated.accNum);
+    }
+
+    // 1. Cross-Tab Storage Event Listener
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'idbi_demo_accounts' || e.key === 'idbi_demo_transactions') {
+        refreshActiveAccountUI();
+      }
+    });
+
+    // 2. High-Frequency Real-Time Polling Heartbeat (every 500ms)
+    setInterval(() => {
+      refreshActiveAccountUI();
+    }, 500);
+
+    // ================= OTP LOGIC =================
+    window.requestLoginOtp = async function() {
+      const phoneInput = document.getElementById('login-phone-input').value.trim();
+      const statusMsg = document.getElementById('otp-status-msg');
+      const btn = document.getElementById('btn-send-otp');
+
+      if (phoneInput.length !== 10 || isNaN(phoneInput)) {
+        statusMsg.className = 'text-xs font-semibold text-red-400';
+        statusMsg.textContent = 'Please enter a valid 10-digit mobile number.';
+        return;
+      }
+
+      currentAuthPhone = phoneInput;
+      statusMsg.className = 'text-xs font-semibold text-amber-400';
+      statusMsg.textContent = 'Contacting SMS gateway...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(`${OTP_API_BASE}/send-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: phoneInput })
+        });
+        const data = await response.json();
+        if (data.success) {
+          statusMsg.className = 'text-xs font-semibold text-emerald-400';
+          statusMsg.textContent = 'Security code dispatched via SMS!';
+          document.getElementById('display-auth-phone').textContent = `+91 ${phoneInput}`;
+          document.getElementById('otp-step-phone').classList.add('hidden');
+          document.getElementById('otp-step-verify').classList.remove('hidden');
+          document.getElementById('login-otp-input').focus();
+        } else {
+          statusMsg.className = 'text-xs font-semibold text-red-400';
+          statusMsg.textContent = data.message || 'Error sending SMS.';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        statusMsg.className = 'text-xs font-semibold text-amber-400';
+        statusMsg.textContent = 'Auth Server offline. Demo code 784920 enabled.';
+        document.getElementById('display-auth-phone').textContent = `+91 ${phoneInput}`;
+        document.getElementById('otp-step-phone').classList.add('hidden');
+        document.getElementById('otp-step-verify').classList.remove('hidden');
+        document.getElementById('login-otp-input').focus();
+        btn.disabled = false;
+      }
+    };
+
+    window.submitVerifyOtp = async function() {
+      const otpCode = document.getElementById('login-otp-input').value.trim();
+      const statusMsg = document.getElementById('otp-status-msg');
+      const btn = document.getElementById('btn-verify-otp');
+
+      if (!otpCode || otpCode.length !== 6 || isNaN(otpCode)) {
+        statusMsg.className = 'text-xs font-semibold text-red-400';
+        statusMsg.textContent = 'Please enter the 6-digit verification code.';
+        return;
+      }
+
+      statusMsg.className = 'text-xs font-semibold text-amber-400';
+      statusMsg.textContent = 'Verifying credentials...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(`${OTP_API_BASE}/verify-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: currentAuthPhone, otp: otpCode })
+        });
+        const data = await response.json();
+        if (data.success) {
+          document.getElementById('otp-auth-screen').classList.add('hidden');
+        } else {
+          statusMsg.className = 'text-xs font-semibold text-red-400';
+          statusMsg.textContent = data.message || 'Invalid or expired OTP.';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        if (otpCode === '784920' || otpCode.length === 6) {
+          document.getElementById('otp-auth-screen').classList.add('hidden');
+        } else {
+          statusMsg.className = 'text-xs font-semibold text-red-400';
+          statusMsg.textContent = 'Invalid OTP code. Use 784920 for demo.';
+          btn.disabled = false;
+        }
+      }
+    };
+
+    window.resetOtpStep = function() {
+      document.getElementById('otp-step-verify').classList.add('hidden');
+      document.getElementById('otp-step-phone').classList.remove('hidden');
+      document.getElementById('otp-status-msg').textContent = '';
+      document.getElementById('btn-send-otp').disabled = false;
+    };
+
+    window.closeModalDirect = function(id) { document.getElementById(id).classList.add('hidden'); };
+
+    function queueAdminRequest(type, targetAcc, details) {
+      const requests = JSON.parse(localStorage.getItem('idbi_admin_approval_requests') || '[]');
+      const refId = type.slice(0, 3).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+      requests.unshift({ id: Date.now().toString(), refId: refId, type: type, account: targetAcc, details: details, time: new Date().toLocaleTimeString() });
+      localStorage.setItem('idbi_admin_approval_requests', JSON.stringify(requests));
+      return refId;
+    }
+
+    window.openActivateAppModal = function() { document.getElementById('modal-activate-app').classList.remove('hidden'); };
+    window.openResetMpinModal = function() { document.getElementById('modal-reset-mpin-direct').classList.remove('hidden'); };
+    window.openSecurityQuestionsModal = function() { document.getElementById('stage-sec-form').classList.remove('hidden'); document.getElementById('stage-sec-fallback').classList.add('hidden'); document.getElementById('modal-security-questions').classList.remove('hidden'); };
+    window.openPrivateBankingOnboarding = function() { document.getElementById('modal-savings-onboarding').classList.remove('hidden'); };
+
+    window.dispatchActivationRequest = function() {
+      const acc = document.getElementById('act-cust-id').value.trim();
+      const card = document.getElementById('act-card-num').value.trim();
+      const mpin = document.getElementById('act-new-mpin').value.trim();
+      if (!acc || card.length !== 16 || isNaN(card) || mpin.length !== 4) return alert('Invalid credentials entered.');
+      const found = getAccounts().find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      if (!found) return alert('Account record does not exist in IDBI records.');
+      queueAdminRequest('ACTIVATE_APP', found.accNum, { cardLast4: card.slice(-4), desiredMpin: mpin, name: found.name });
+      closeModalDirect('modal-activate-app');
+      alert('Activation request dispatched to Admin CBS terminal.');
+    };
+
+    window.dispatchMpinResetRequest = function() {
+      const acc = document.getElementById('reset-mpin-acc').value.trim();
+      const mpin = document.getElementById('reset-mpin-new').value.trim();
+      if (!acc || mpin.length !== 4) return alert('Enter valid account and 4-digit MPIN.');
+      const found = getAccounts().find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      if (!found) return alert('Account record not found.');
+      queueAdminRequest('RESET_MPIN', found.accNum, { newMpin: mpin, name: found.name });
+      closeModalDirect('modal-reset-mpin-direct');
+      alert('MPIN reset request queued for officer clearance.');
+    };
+
+    window.dispatchSecurityUnlockRequest = function() {
+      const acc = document.getElementById('sec-cust-id').value.trim();
+      const ans1 = document.getElementById('sec-ans-1').value.trim().toLowerCase();
+      const ans2 = document.getElementById('sec-ans-2').value.trim().toLowerCase();
+      if (!acc) return alert('Enter Customer ID or Account.');
+      const found = getAccounts().find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      if (!found) return alert('Account record not found.');
+      if (!found.secBirth || !found.secMother) {
+        document.getElementById('sec-fallback-acc').value = `${found.accNum} (${found.name})`;
+        document.getElementById('stage-sec-form').classList.add('hidden');
+        document.getElementById('stage-sec-fallback').classList.remove('hidden');
+        return;
+      }
+      if (ans1 !== found.secBirth.toLowerCase() || ans2 !== found.secMother.toLowerCase()) return alert('Security Answers Mismatch.');
+      queueAdminRequest('UNLOCK_SECURITY', found.accNum, { birthCity: ans1, maidenName: ans2, name: found.name, verified: true });
+      closeModalDirect('modal-security-questions');
+      alert('Unlock request sent to compliance desk.');
+    };
+
+    window.dispatchFallbackUnlockRequest = function() {
+      const phone = document.getElementById('sec-fallback-phone').value.trim();
+      const acc = document.getElementById('sec-cust-id').value.trim();
+      if (!phone || phone.length < 10) return alert('Enter valid phone.');
+      const found = getAccounts().find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      queueAdminRequest('UNLOCK_SECURITY', found ? found.accNum : acc, { phone: phone, name: found ? found.name : 'Unknown', fallbackMode: true });
+      closeModalDirect('modal-security-questions');
+      alert('Contact number submitted to officer for verification.');
+    };
+
+    window.submitPrivateBankingLead = function() {
+      const name = document.getElementById('input-lead-name').value.trim();
+      const phone = document.getElementById('input-lead-phone').value.trim();
+      if (!name || phone.length < 10) return alert('Enter valid name and 10-digit phone.');
+      const leads = JSON.parse(localStorage.getItem('idbi_savings_leads') || '[]');
+      leads.unshift({ id: Date.now().toString(), refId: 'IDBI-' + Math.floor(1000 + Math.random() * 9000), name: name, phone: phone, time: new Date().toLocaleTimeString() });
+      localStorage.setItem('idbi_savings_leads', JSON.stringify(leads));
+      closeModalDirect('modal-savings-onboarding');
+      alert('Account application received. An advisor will contact you.');
+    };
+
+    // ================= 3D CARD FLIP & DYNAMIC CARD TIER ENGINE =================
+    window.toggleCardSideFlip = function() {
+      const flipper = document.getElementById('card-3d-flipper');
+      const btnText = document.getElementById('flip-btn-text');
+      isCardFlipped = !isCardFlipped;
+      if (isCardFlipped) {
+        flipper.classList.add('is-flipped');
+        btnText.textContent = 'Flip to Front';
+      } else {
+        flipper.classList.remove('is-flipped');
+        btnText.textContent = 'Flip to Back';
+      }
+    };
+
+    function applyDynamicCardTier(account) {
+      const frontFace = document.getElementById('card-front-face');
+      const backFace = document.getElementById('card-back-face');
+      const heading = document.getElementById('card-scheme-heading');
+      const typeText = document.getElementById('card-front-type-text');
+      const tabTitle = document.getElementById('card-tab-title');
+      const tabSub = document.getElementById('card-tab-sub');
+
+      let isGold = false;
+      if (account.cardTier === 'gold') {
+        isGold = true;
+      } else if (account.cardTier === 'platinum') {
+        isGold = false;
+      } else {
+        isGold = Number(account.balance) >= 10000000;
+      }
+
+      if (isGold) {
+        frontFace.className = "card-face gold-card-front p-5 text-white relative shadow-2xl overflow-hidden min-h-[200px]";
+        backFace.className = "card-face card-face-back gold-card-back text-white absolute inset-0 shadow-2xl overflow-hidden min-h-[200px] flex flex-col justify-between";
+        heading.textContent = "IDBI GOLD CREDIT / DEBIT CARD";
+        typeText.textContent = "GOLD DEBIT";
+        tabTitle.textContent = "Gold Card";
+        tabSub.textContent = "VIP Edition";
+      } else {
+        frontFace.className = "card-face plat-card-front p-5 text-slate-800 relative shadow-2xl overflow-hidden min-h-[200px]";
+        backFace.className = "card-face card-face-back plat-card-back text-slate-900 absolute inset-0 shadow-2xl overflow-hidden min-h-[200px] flex flex-col justify-between";
+        heading.textContent = "IDBI PLATINUM DEBIT CARD";
+        typeText.textContent = "PLATINUM";
+        tabTitle.textContent = "Platinum Card";
+        tabSub.textContent = "Standard Edition";
+      }
+
+      document.getElementById('card-virtual-name').textContent = account.name;
+      const last8 = (account.accNum || '12345678').slice(-8);
+      document.getElementById('card-virtual-number').textContent = `1234 5678 ${last8.slice(0,4)} ${last8.slice(4)}`;
+      document.getElementById('card-virtual-cvv').textContent = (account.accNum || '501').slice(-3);
+    }
+
+    // Dashboard Tabs
+    window.switchBankingTab = function(tabName) {
+      const panelTransfer = document.getElementById('panel-transfer');
+      const panelBillPay = document.getElementById('panel-billpay');
+      const panelDebitCard = document.getElementById('panel-debitcard');
+      const btnTransfer = document.getElementById('btn-tab-transfer');
+      const btnBillPay = document.getElementById('btn-tab-billpay');
+      const btnDebitCard = document.getElementById('btn-tab-debitcard');
+
+      if (!panelTransfer || !panelBillPay || !panelDebitCard) return;
+
+      panelTransfer.classList.add('hidden');
+      panelBillPay.classList.add('hidden');
+      panelDebitCard.classList.add('hidden');
+
+      btnTransfer.className = "cursor-pointer modern-box-panel border border-slate-700/60 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95";
+      btnBillPay.className = "cursor-pointer modern-box-panel border border-slate-700/60 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95";
+      btnDebitCard.className = "cursor-pointer modern-box-panel border border-slate-700/60 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95";
+
+      if (tabName === 'transfer') {
+        panelTransfer.classList.remove('hidden');
+        btnTransfer.className = "cursor-pointer modern-box-panel border-2 border-orange-500 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95";
+      } else if (tabName === 'billpay') {
+        panelBillPay.classList.remove('hidden');
+        btnBillPay.className = "cursor-pointer modern-box-panel border-2 border-emerald-500 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95";
+      } else if (tabName === 'debitcard') {
+        panelDebitCard.classList.remove('hidden');
+        btnDebitCard.className = "cursor-pointer modern-box-panel border-2 border-amber-500 p-3 rounded-2xl flex flex-col items-center shadow-md transition active:scale-95";
+        if (activeAccount) applyDynamicCardTier(activeAccount);
+      }
+    };
+
+    // Fund Transfer
+    window.executeDashboardTransfer = function() {
+      const toAcc = document.getElementById('dash-to-acc').value.trim();
+      const amt = parseFloat(document.getElementById('dash-to-amt').value);
+      if (!toAcc || isNaN(amt) || amt <= 0) return alert('Enter valid account and amount.');
+      if (!activeAccount) return alert('Session expired.');
+
+      const accounts = getAccounts();
+      const sender = accounts.find(a => a.accNum === activeAccount.accNum);
+      const receiver = accounts.find(a => a.accNum === toAcc);
+
+      if (!sender || sender.balance < amt) return alert('Insufficient available balance.');
+      if (!receiver) return alert('Beneficiary account not found in core database.');
+
+      sender.balance -= amt;
+      receiver.balance += amt;
+      saveAccounts(accounts);
+      activeAccount = sender;
+
+      const txns = getTransactions();
+      txns.push({
+        id: 'IMPS' + Math.floor(1000000 + Math.random() * 9000000),
+        time: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        from: sender.accNum,
+        to: toAcc,
+        amount: amt,
+        status: 'SUCCESS'
+      });
+      saveTransactions(txns);
+
+      document.getElementById('dash-balance').textContent = `₹${Number(sender.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      document.getElementById('dash-to-acc').value = '';
+      document.getElementById('dash-to-amt').value = '';
+      renderCustomerPassbook(sender.accNum);
+      applyDynamicCardTier(sender);
+      alert(`Transfer of ₹${amt.toLocaleString('en-IN')} to ${receiver.name} completed successfully via IMPS.`);
+    };
+
+    // Bill Pay
+    window.updateBillerPlaceholder = function() {
+      const cat = document.getElementById('bill-category').value;
+      const inp = document.getElementById('bill-consumer-no');
+      inp.placeholder = cat === 'Electricity' ? 'Enter Consumer Service No.' : 'Enter Service ID / Number';
+    };
+
+    window.processBillPayment = function() {
+      const cat = document.getElementById('bill-category').value;
+      const num = document.getElementById('bill-consumer-no').value.trim();
+      const amt = parseFloat(document.getElementById('bill-amount').value);
+
+      if (!num) return alert('Enter consumer / service number.');
+      if (isNaN(amt) || amt <= 0) return alert('Enter valid amount.');
+      if (!activeAccount) return alert('Session expired.');
+
+      const accounts = getAccounts();
+      const sender = accounts.find(a => a.accNum === activeAccount.accNum);
+      if (!sender || sender.balance < amt) return alert('Insufficient balance.');
+
+      sender.balance -= amt;
+      saveAccounts(accounts);
+      activeAccount = sender;
+
+      const txns = getTransactions();
+      txns.push({
+        id: 'BBPS' + Math.floor(1000000 + Math.random() * 9000000),
+        time: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        from: sender.accNum,
+        to: `${cat} Bill: ${num}`,
+        amount: amt,
+        status: 'SUCCESS'
+      });
+      saveTransactions(txns);
+
+      document.getElementById('dash-balance').textContent = `₹${Number(sender.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      document.getElementById('bill-consumer-no').value = '';
+      document.getElementById('bill-amount').value = '';
+      renderCustomerPassbook(sender.accNum);
+      applyDynamicCardTier(sender);
+      alert(`BBPS Receipt: ₹${amt.toLocaleString('en-IN')} paid successfully for ${cat} (${num}).`);
+    };
+
+    // Card Controls
+    window.toggleDebitCardLock = function() {
+      if (!activeAccount) return;
+      const accounts = getAccounts();
+      const target = accounts.find(a => a.accNum === activeAccount.accNum);
+      if (!target) return;
+      target.isCardLocked = !target.isCardLocked;
+      saveAccounts(accounts);
+      activeAccount = target;
+      updateCardLockUI(target.isCardLocked);
+      alert(target.isCardLocked ? 'Card Locked for safety.' : 'Card Active & Operational.');
+    };
+
+    function updateCardLockUI(isLocked) {
+      const badge = document.getElementById('card-lock-badge');
+      const btn = document.getElementById('btn-card-toggle');
+      if (isLocked) {
+        if (badge) {
+          badge.className = "text-[10px] bg-red-950 text-red-300 font-bold px-2 py-0.5 rounded border border-red-500/30";
+          badge.textContent = "CARD LOCKED";
+        }
+        if (btn) {
+          btn.textContent = "Unlock Card";
+          btn.className = "w-full bg-emerald-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold";
+        }
+      } else {
+        if (badge) {
+          badge.className = "text-[10px] bg-green-950 text-green-300 font-bold px-2 py-0.5 rounded border border-green-500/30";
+          badge.textContent = "ACTIVE";
+        }
+        if (btn) {
+          btn.textContent = "Lock Card";
+          btn.className = "w-full bg-slate-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold";
+        }
+      }
+    }
+
+    window.updateDebitCardPin = function() {
+      const pin = document.getElementById('input-new-atmpin').value.trim();
+      if (!pin || pin.length !== 4 || isNaN(pin)) return alert('Card PIN must be 4 digits.');
+      if (!activeAccount) return;
+
+      const accounts = getAccounts();
+      const target = accounts.find(a => a.accNum === activeAccount.accNum);
+      if (target) {
+        target.cardPin = pin;
+        saveAccounts(accounts);
+        activeAccount = target;
+        document.getElementById('input-new-atmpin').value = '';
+        alert('Card PIN updated instantly in core ledger.');
+      }
+    };
+
+    function renderCustomerPassbook(accountNumber) {
+      const allTxns = getTransactions();
+      const userTxns = allTxns.filter(tx => tx.from === accountNumber || tx.to === accountNumber);
+      const listContainer = document.getElementById('customer-tx-list');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
+
+      if (userTxns.length === 0) {
+        listContainer.innerHTML = `<div class="text-center py-4 text-xs text-slate-400 font-mono">No recent transactions recorded.</div>`;
+        return;
+      }
+
+      userTxns.slice().reverse().forEach(tx => {
+        const isDebit = tx.from === accountNumber;
+        const item = document.createElement('div');
+        item.className = 'p-3 rounded-xl border flex justify-between items-center text-xs bg-[#090e16] border-slate-800';
+        item.innerHTML = `
+          <div>
+            <p class="font-bold ${isDebit ? 'text-red-400' : 'text-emerald-400'}">
+              <i class="fa-solid ${isDebit ? 'fa-arrow-up-right-from-square' : 'fa-arrow-down-left-and-up-right-to-surface'} mr-1"></i>
+              ${isDebit ? (tx.to.includes('Bill:') ? tx.to : 'Transfer to A/C ' + tx.to) : 'Deposit from ' + tx.from}
+            </p>
+            <p class="text-[10px] text-slate-400 font-mono mt-0.5">${tx.time} &bull; Ref #${tx.id}</p>
+          </div>
+          <div class="text-right">
+            <span class="font-mono font-bold text-xs ${isDebit ? 'text-red-400' : 'text-emerald-400'}">
+              ${isDebit ? '- ₹' : '+ ₹'}${Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    // Login Functionality
+    document.getElementById('btn-login').addEventListener('click', () => {
+      const input = document.getElementById('input-cust-id').value.trim().toLowerCase();
+      const mpin = document.getElementById('input-mpin').value.trim();
+
+      const accounts = getAccounts();
+      const found = accounts.find(a => a.accNum.toLowerCase() === input || (a.custId && a.custId.toLowerCase() === input));
+
+      if (!found) return alert('Account not found in bank records.');
+      if (found.isFrozen) return alert('SECURITY ALERT: This account is currently FROZEN.');
+      if (found.mpin !== mpin) return alert('Invalid MPIN credentials.');
+
+      activeAccount = found;
+      document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-dashboard').classList.remove('hidden');
+      document.getElementById('screen-dashboard').classList.add('flex');
+
+      refreshActiveAccountUI();
+      switchBankingTab('transfer');
+    });
+
+    document.getElementById('btn-back-home').addEventListener('click', () => {
+      document.getElementById('screen-dashboard').classList.add('hidden');
+      document.getElementById('screen-dashboard').classList.remove('flex');
+      document.getElementById('screen-home').classList.remove('hidden');
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      activeAccount = null;
+      document.getElementById('input-cust-id').value = '';
+      document.getElementById('input-mpin').value = '';
+      document.getElementById('screen-dashboard').classList.add('hidden');
+      document.getElementById('screen-dashboard').classList.remove('flex');
+      document.getElementById('screen-home').classList.remove('hidden');
+    });
+
+    let isDarkMode = true;
+    window.toggleAppTheme = function() {
+      isDarkMode = !isDarkMode;
+      document.documentElement.classList.toggle('dark', isDarkMode);
+    };
+
+    setInterval(() => { document.getElementById('system-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }, 1000);
+  </script>
+</body>
+                  </html>
