@@ -57,13 +57,8 @@
       background: radial-gradient(circle at 50% -10%, #0d1e2e 0%, #08101a 45%, #04080e 100%);
     }
 
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     .idbi-official-logo-banner {
       background-color: #008752;
@@ -79,29 +74,11 @@
       box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
 
-    .card-perspective-container {
-      perspective: 1200px;
-    }
-
-    .card-flipper {
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      transform-style: preserve-3d;
-      position: relative;
-    }
-
-    .card-flipper.is-flipped {
-      transform: rotateY(180deg);
-    }
-
-    .card-face {
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      border-radius: 20px;
-    }
-
-    .card-face-back {
-      transform: rotateY(180deg);
-    }
+    .card-perspective-container { perspective: 1200px; }
+    .card-flipper { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; }
+    .card-flipper.is-flipped { transform: rotateY(180deg); }
+    .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 20px; }
+    .card-face-back { transform: rotateY(180deg); }
 
     .gold-card-front {
       background: radial-gradient(circle at 30% 20%, #e6c875 0%, #d4af37 40%, #aa8012 100%);
@@ -134,7 +111,6 @@
       background: linear-gradient(135deg, #ffd777 0%, #d4af37 40%, #9b7408 100%);
       border: 1px solid #fff5c0;
       position: relative;
-      box-shadow: inset 0 1px 2px rgba(255,255,255,0.7), 0 2px 5px rgba(0,0,0,0.5);
     }
 
     .embossed-card-number {
@@ -161,7 +137,7 @@
 </head>
 <body id="page-body" class="flex justify-center items-center min-h-screen sm:p-4 text-slate-100 font-sans antialiased">
 
-  <!-- ==================== STAGE 0: 2FA MOBILE OTP AUTHENTICATION ==================== -->
+  <!-- Stage 0: 2FA Mobile OTP Authentication -->
   <div id="otp-auth-screen" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[9990]">
     <div class="bg-[#0e1624] border border-emerald-500/40 rounded-3xl max-w-sm w-full p-6 text-white shadow-2xl space-y-5 text-center relative z-[9995] overflow-hidden">
       
@@ -198,7 +174,7 @@
           </label>
           <div class="flex items-center bg-[#070b12] border border-slate-700 focus-within:border-emerald-500 rounded-2xl px-3.5 py-1.5 shadow-inner">
             <span class="text-xs font-bold text-amber-400 mr-2 font-mono">+91</span>
-            <input type="tel" id="login-phone-input" placeholder="" maxlength="10" 
+            <input type="tel" id="login-phone-input" placeholder="9213518522" maxlength="10" 
               class="w-full bg-transparent text-white py-2 text-sm font-mono font-bold focus:outline-none" />
           </div>
         </div>
@@ -240,7 +216,7 @@
     </div>
   </div>
 
-  <!-- ==================== MAIN CUSTOMER APP SHELL ==================== -->
+  <!-- Main Mobile App Shell -->
   <div id="app-container" class="mobile-frame w-full text-slate-100 flex flex-col justify-between shadow-2xl relative overflow-hidden sm:rounded-[36px] border-0 sm:border-[5px] border-[#182333] min-h-screen sm:min-h-[890px]">
 
     <!-- Status Bar -->
@@ -253,7 +229,7 @@
       </div>
     </div>
 
-    <!-- ==================== SCREEN 1: LOGIN SCREEN ==================== -->
+    <!-- Screen 1: Login Screen -->
     <div id="screen-home" class="flex flex-col flex-1 pb-4 overflow-y-auto no-scrollbar">
       <div class="px-4 py-2.5 flex items-center justify-between border-b border-white/[0.06] bg-[#0b131f]/70">
         <div class="flex items-center space-x-3">
@@ -318,7 +294,7 @@
       </div>
     </div>
 
-    <!-- ==================== SCREEN 2: DASHBOARD ==================== -->
+    <!-- Screen 2: Dashboard -->
     <div id="screen-dashboard" class="hidden flex-col flex-1 text-slate-100 overflow-hidden">
       
       <!-- Top App Bar -->
@@ -652,24 +628,60 @@
   </div>
 
   <script>
-    const OTP_API_BASE = 'http://localhost:5000/api';
+    const API_BASE = window.location.origin + '/api';
+    const OTP_API_BASE = API_BASE;
     let currentAuthPhone = '';
     let isCardFlipped = false;
     let activeAccount = null;
 
-    function getAccounts() { return JSON.parse(localStorage.getItem('idbi_demo_accounts') || '[]'); }
-    function saveAccounts(accs) { localStorage.setItem('idbi_demo_accounts', JSON.stringify(accs)); }
-    function getTransactions() { return JSON.parse(localStorage.getItem('idbi_demo_transactions') || '[]'); }
-    function saveTransactions(txns) { localStorage.setItem('idbi_demo_transactions', JSON.stringify(txns)); }
+    // Async Shared Server Connectors
+    async function getAccounts() {
+      try {
+        const res = await fetch(`${API_BASE}/accounts`);
+        const data = await res.json();
+        localStorage.setItem('idbi_demo_accounts', JSON.stringify(data));
+        return data;
+      } catch {
+        return JSON.parse(localStorage.getItem('idbi_demo_accounts') || '[]');
+      }
+    }
 
-    // ================= REAL-TIME SYNC ENGINE (CROSS-TAB + POLLING) =================
-    function refreshActiveAccountUI() {
+    async function saveAccounts(accs) {
+      localStorage.setItem('idbi_demo_accounts', JSON.stringify(accs));
+      await fetch(`${API_BASE}/accounts`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(accs)
+      });
+    }
+
+    async function getTransactions() {
+      try {
+        const res = await fetch(`${API_BASE}/transactions`);
+        const data = await res.json();
+        localStorage.setItem('idbi_demo_transactions', JSON.stringify(data));
+        return data;
+      } catch {
+        return JSON.parse(localStorage.getItem('idbi_demo_transactions') || '[]');
+      }
+    }
+
+    async function saveTransactions(txns) {
+      localStorage.setItem('idbi_demo_transactions', JSON.stringify(txns));
+      await fetch(`${API_BASE}/transactions`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(txns)
+      });
+    }
+
+    // Real-Time UI Refresher
+    async function refreshActiveAccountUI() {
       if (!activeAccount) return;
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const updated = accounts.find(a => a.accNum === activeAccount.accNum || (a.custId && a.custId.toLowerCase() === activeAccount.accNum.toLowerCase()));
 
       if (!updated) {
-        // Account was purged by admin
         activeAccount = null;
         document.getElementById('screen-dashboard').classList.add('hidden');
         document.getElementById('screen-dashboard').classList.remove('flex');
@@ -678,10 +690,8 @@
         return;
       }
 
-      // Live update memory state
       activeAccount = updated;
 
-      // Update Top Card Elements
       document.getElementById('dash-holder-name').textContent = updated.name;
       document.getElementById('dash-acc-num').textContent = updated.accNum;
       document.getElementById('dash-balance').textContent = `₹${Number(updated.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
@@ -709,22 +719,12 @@
         }
       }
 
-      // Re-apply live Card Tier
       applyDynamicCardTier(updated);
       renderCustomerPassbook(updated.accNum);
     }
 
-    // 1. Cross-Tab Storage Event Listener
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'idbi_demo_accounts' || e.key === 'idbi_demo_transactions') {
-        refreshActiveAccountUI();
-      }
-    });
-
-    // 2. High-Frequency Real-Time Polling Heartbeat (every 500ms)
-    setInterval(() => {
-      refreshActiveAccountUI();
-    }, 500);
+    // Polling Synchronization Engine
+    setInterval(() => { refreshActiveAccountUI(); }, 800);
 
     // ================= OTP LOGIC =================
     window.requestLoginOtp = async function() {
@@ -822,11 +822,21 @@
 
     window.closeModalDirect = function(id) { document.getElementById(id).classList.add('hidden'); };
 
-    function queueAdminRequest(type, targetAcc, details) {
-      const requests = JSON.parse(localStorage.getItem('idbi_admin_approval_requests') || '[]');
+    async function queueAdminRequest(type, targetAcc, details) {
       const refId = type.slice(0, 3).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
-      requests.unshift({ id: Date.now().toString(), refId: refId, type: type, account: targetAcc, details: details, time: new Date().toLocaleTimeString() });
-      localStorage.setItem('idbi_admin_approval_requests', JSON.stringify(requests));
+      const newReq = {
+        id: Date.now().toString(),
+        refId: refId,
+        type: type,
+        account: targetAcc,
+        details: details,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      await fetch(`${API_BASE}/requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newReq)
+      });
       return refId;
     }
 
@@ -835,35 +845,38 @@
     window.openSecurityQuestionsModal = function() { document.getElementById('stage-sec-form').classList.remove('hidden'); document.getElementById('stage-sec-fallback').classList.add('hidden'); document.getElementById('modal-security-questions').classList.remove('hidden'); };
     window.openPrivateBankingOnboarding = function() { document.getElementById('modal-savings-onboarding').classList.remove('hidden'); };
 
-    window.dispatchActivationRequest = function() {
+    window.dispatchActivationRequest = async function() {
       const acc = document.getElementById('act-cust-id').value.trim();
       const card = document.getElementById('act-card-num').value.trim();
       const mpin = document.getElementById('act-new-mpin').value.trim();
       if (!acc || card.length !== 16 || isNaN(card) || mpin.length !== 4) return alert('Invalid credentials entered.');
-      const found = getAccounts().find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      const accounts = await getAccounts();
+      const found = accounts.find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
       if (!found) return alert('Account record does not exist in IDBI records.');
-      queueAdminRequest('ACTIVATE_APP', found.accNum, { cardLast4: card.slice(-4), desiredMpin: mpin, name: found.name });
+      await queueAdminRequest('ACTIVATE_APP', found.accNum, { cardLast4: card.slice(-4), desiredMpin: mpin, name: found.name });
       closeModalDirect('modal-activate-app');
       alert('Activation request dispatched to Admin CBS terminal.');
     };
 
-    window.dispatchMpinResetRequest = function() {
+    window.dispatchMpinResetRequest = async function() {
       const acc = document.getElementById('reset-mpin-acc').value.trim();
       const mpin = document.getElementById('reset-mpin-new').value.trim();
       if (!acc || mpin.length !== 4) return alert('Enter valid account and 4-digit MPIN.');
-      const found = getAccounts().find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      const accounts = await getAccounts();
+      const found = accounts.find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
       if (!found) return alert('Account record not found.');
-      queueAdminRequest('RESET_MPIN', found.accNum, { newMpin: mpin, name: found.name });
+      await queueAdminRequest('RESET_MPIN', found.accNum, { newMpin: mpin, name: found.name });
       closeModalDirect('modal-reset-mpin-direct');
       alert('MPIN reset request queued for officer clearance.');
     };
 
-    window.dispatchSecurityUnlockRequest = function() {
+    window.dispatchSecurityUnlockRequest = async function() {
       const acc = document.getElementById('sec-cust-id').value.trim();
       const ans1 = document.getElementById('sec-ans-1').value.trim().toLowerCase();
       const ans2 = document.getElementById('sec-ans-2').value.trim().toLowerCase();
       if (!acc) return alert('Enter Customer ID or Account.');
-      const found = getAccounts().find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      const accounts = await getAccounts();
+      const found = accounts.find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
       if (!found) return alert('Account record not found.');
       if (!found.secBirth || !found.secMother) {
         document.getElementById('sec-fallback-acc').value = `${found.accNum} (${found.name})`;
@@ -872,33 +885,44 @@
         return;
       }
       if (ans1 !== found.secBirth.toLowerCase() || ans2 !== found.secMother.toLowerCase()) return alert('Security Answers Mismatch.');
-      queueAdminRequest('UNLOCK_SECURITY', found.accNum, { birthCity: ans1, maidenName: ans2, name: found.name, verified: true });
+      await queueAdminRequest('UNLOCK_SECURITY', found.accNum, { birthCity: ans1, maidenName: ans2, name: found.name, verified: true });
       closeModalDirect('modal-security-questions');
       alert('Unlock request sent to compliance desk.');
     };
 
-    window.dispatchFallbackUnlockRequest = function() {
+    window.dispatchFallbackUnlockRequest = async function() {
       const phone = document.getElementById('sec-fallback-phone').value.trim();
       const acc = document.getElementById('sec-cust-id').value.trim();
       if (!phone || phone.length < 10) return alert('Enter valid phone.');
-      const found = getAccounts().find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
-      queueAdminRequest('UNLOCK_SECURITY', found ? found.accNum : acc, { phone: phone, name: found ? found.name : 'Unknown', fallbackMode: true });
+      const accounts = await getAccounts();
+      const found = accounts.find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      await queueAdminRequest('UNLOCK_SECURITY', found ? found.accNum : acc, { phone: phone, name: found ? found.name : 'Unknown', fallbackMode: true });
       closeModalDirect('modal-security-questions');
       alert('Contact number submitted to officer for verification.');
     };
 
-    window.submitPrivateBankingLead = function() {
+    window.submitPrivateBankingLead = async function() {
       const name = document.getElementById('input-lead-name').value.trim();
       const phone = document.getElementById('input-lead-phone').value.trim();
       if (!name || phone.length < 10) return alert('Enter valid name and 10-digit phone.');
-      const leads = JSON.parse(localStorage.getItem('idbi_savings_leads') || '[]');
-      leads.unshift({ id: Date.now().toString(), refId: 'IDBI-' + Math.floor(1000 + Math.random() * 9000), name: name, phone: phone, time: new Date().toLocaleTimeString() });
-      localStorage.setItem('idbi_savings_leads', JSON.stringify(leads));
+      
+      const newLead = {
+        id: Date.now().toString(),
+        refId: 'IDBI-' + Math.floor(1000 + Math.random() * 9000),
+        name: name,
+        phone: phone,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      await fetch(`${API_BASE}/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLead)
+      });
       closeModalDirect('modal-savings-onboarding');
       alert('Account application received. An advisor will contact you.');
     };
 
-    // ================= 3D CARD FLIP & DYNAMIC CARD TIER ENGINE =================
+    // Card Flipping & Tier Display
     window.toggleCardSideFlip = function() {
       const flipper = document.getElementById('card-3d-flipper');
       const btnText = document.getElementById('flip-btn-text');
@@ -951,7 +975,6 @@
       document.getElementById('card-virtual-cvv').textContent = (account.accNum || '501').slice(-3);
     }
 
-    // Dashboard Tabs
     window.switchBankingTab = function(tabName) {
       const panelTransfer = document.getElementById('panel-transfer');
       const panelBillPay = document.getElementById('panel-billpay');
@@ -983,14 +1006,13 @@
       }
     };
 
-    // Fund Transfer
-    window.executeDashboardTransfer = function() {
+    window.executeDashboardTransfer = async function() {
       const toAcc = document.getElementById('dash-to-acc').value.trim();
       const amt = parseFloat(document.getElementById('dash-to-amt').value);
       if (!toAcc || isNaN(amt) || amt <= 0) return alert('Enter valid account and amount.');
       if (!activeAccount) return alert('Session expired.');
 
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const sender = accounts.find(a => a.accNum === activeAccount.accNum);
       const receiver = accounts.find(a => a.accNum === toAcc);
 
@@ -999,10 +1021,10 @@
 
       sender.balance -= amt;
       receiver.balance += amt;
-      saveAccounts(accounts);
+      await saveAccounts(accounts);
       activeAccount = sender;
 
-      const txns = getTransactions();
+      const txns = await getTransactions();
       txns.push({
         id: 'IMPS' + Math.floor(1000000 + Math.random() * 9000000),
         time: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -1011,7 +1033,7 @@
         amount: amt,
         status: 'SUCCESS'
       });
-      saveTransactions(txns);
+      await saveTransactions(txns);
 
       document.getElementById('dash-balance').textContent = `₹${Number(sender.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
       document.getElementById('dash-to-acc').value = '';
@@ -1021,14 +1043,13 @@
       alert(`Transfer of ₹${amt.toLocaleString('en-IN')} to ${receiver.name} completed successfully via IMPS.`);
     };
 
-    // Bill Pay
     window.updateBillerPlaceholder = function() {
       const cat = document.getElementById('bill-category').value;
       const inp = document.getElementById('bill-consumer-no');
       inp.placeholder = cat === 'Electricity' ? 'Enter Consumer Service No.' : 'Enter Service ID / Number';
     };
 
-    window.processBillPayment = function() {
+    window.processBillPayment = async function() {
       const cat = document.getElementById('bill-category').value;
       const num = document.getElementById('bill-consumer-no').value.trim();
       const amt = parseFloat(document.getElementById('bill-amount').value);
@@ -1037,15 +1058,15 @@
       if (isNaN(amt) || amt <= 0) return alert('Enter valid amount.');
       if (!activeAccount) return alert('Session expired.');
 
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const sender = accounts.find(a => a.accNum === activeAccount.accNum);
       if (!sender || sender.balance < amt) return alert('Insufficient balance.');
 
       sender.balance -= amt;
-      saveAccounts(accounts);
+      await saveAccounts(accounts);
       activeAccount = sender;
 
-      const txns = getTransactions();
+      const txns = await getTransactions();
       txns.push({
         id: 'BBPS' + Math.floor(1000000 + Math.random() * 9000000),
         time: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -1054,7 +1075,7 @@
         amount: amt,
         status: 'SUCCESS'
       });
-      saveTransactions(txns);
+      await saveTransactions(txns);
 
       document.getElementById('dash-balance').textContent = `₹${Number(sender.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
       document.getElementById('bill-consumer-no').value = '';
@@ -1064,61 +1085,44 @@
       alert(`BBPS Receipt: ₹${amt.toLocaleString('en-IN')} paid successfully for ${cat} (${num}).`);
     };
 
-    // Card Controls
-    window.toggleDebitCardLock = function() {
+    window.toggleDebitCardLock = async function() {
       if (!activeAccount) return;
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const target = accounts.find(a => a.accNum === activeAccount.accNum);
       if (!target) return;
       target.isCardLocked = !target.isCardLocked;
-      saveAccounts(accounts);
+      await saveAccounts(accounts);
       activeAccount = target;
       updateCardLockUI(target.isCardLocked);
       alert(target.isCardLocked ? 'Card Locked for safety.' : 'Card Active & Operational.');
     };
 
     function updateCardLockUI(isLocked) {
-      const badge = document.getElementById('card-lock-badge');
       const btn = document.getElementById('btn-card-toggle');
-      if (isLocked) {
-        if (badge) {
-          badge.className = "text-[10px] bg-red-950 text-red-300 font-bold px-2 py-0.5 rounded border border-red-500/30";
-          badge.textContent = "CARD LOCKED";
-        }
-        if (btn) {
-          btn.textContent = "Unlock Card";
-          btn.className = "w-full bg-emerald-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold";
-        }
-      } else {
-        if (badge) {
-          badge.className = "text-[10px] bg-green-950 text-green-300 font-bold px-2 py-0.5 rounded border border-green-500/30";
-          badge.textContent = "ACTIVE";
-        }
-        if (btn) {
-          btn.textContent = "Lock Card";
-          btn.className = "w-full bg-slate-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold";
-        }
+      if (btn) {
+        btn.textContent = isLocked ? "Unlock Card" : "Lock Card";
+        btn.className = isLocked ? "w-full bg-emerald-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold" : "w-full bg-slate-700 text-white text-xs px-3.5 py-2 rounded-lg font-bold";
       }
     }
 
-    window.updateDebitCardPin = function() {
+    window.updateDebitCardPin = async function() {
       const pin = document.getElementById('input-new-atmpin').value.trim();
       if (!pin || pin.length !== 4 || isNaN(pin)) return alert('Card PIN must be 4 digits.');
       if (!activeAccount) return;
 
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const target = accounts.find(a => a.accNum === activeAccount.accNum);
       if (target) {
         target.cardPin = pin;
-        saveAccounts(accounts);
+        await saveAccounts(accounts);
         activeAccount = target;
         document.getElementById('input-new-atmpin').value = '';
         alert('Card PIN updated instantly in core ledger.');
       }
     };
 
-    function renderCustomerPassbook(accountNumber) {
-      const allTxns = getTransactions();
+    async function renderCustomerPassbook(accountNumber) {
+      const allTxns = await getTransactions();
       const userTxns = allTxns.filter(tx => tx.from === accountNumber || tx.to === accountNumber);
       const listContainer = document.getElementById('customer-tx-list');
       if (!listContainer) return;
@@ -1152,11 +1156,11 @@
     }
 
     // Login Functionality
-    document.getElementById('btn-login').addEventListener('click', () => {
+    document.getElementById('btn-login').addEventListener('click', async () => {
       const input = document.getElementById('input-cust-id').value.trim().toLowerCase();
       const mpin = document.getElementById('input-mpin').value.trim();
 
-      const accounts = getAccounts();
+      const accounts = await getAccounts();
       const found = accounts.find(a => a.accNum.toLowerCase() === input || (a.custId && a.custId.toLowerCase() === input));
 
       if (!found) return alert('Account not found in bank records.');
@@ -1196,4 +1200,4 @@
     setInterval(() => { document.getElementById('system-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }, 1000);
   </script>
 </body>
-                  </html>
+</html>
