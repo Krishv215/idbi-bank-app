@@ -1,1 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IDBI Bank | Core Banking Solution (CBS Finacle Terminal)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            idbigreen: '#005934',
+            idbidarkgreen: '#003d24',
+            cbsdark: '#0f172a',
+            cbsslate: '#1e293b'
+          },
+          fontFamily: {
+            mono: ['Consolas', 'Monaco', 'Courier New', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    * { user-select: text !important; -webkit-user-select: text !important; }
+    .copyable-acc { cursor: copy; transition: all 0.15s ease-in-out; }
+    .copyable-acc:hover { text-decoration: underline; opacity: 0.9; }
+    .admin-terminal-card {
+      background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 65%, #020617 100%);
+      border: 1px solid rgba(0, 230, 118, 0.35);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 89, 52, 0.25);
+    }
+  </style>
+</head>
+<body id="admin-body" class="bg-[#070d19] text-slate-100 font-sans min-h-screen flex flex-col antialiased text-[15px]">
 
+  <!-- Toast -->
+  <div id="copy-toast" class="hidden fixed bottom-6 right-6 z-50 bg-emerald-600 text-white text-sm font-mono font-bold px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 border border-emerald-400">
+    <i class="fa-solid fa-circle-check text-base"></i>
+    <span id="copy-toast-msg">Account Number Copied!</span>
+  </div>
+
+  <!-- ==================== OFFICER LOGIN ==================== -->
+  <div id="admin-login-screen" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="admin-terminal-card max-w-lg w-full rounded-3xl p-8 text-white shadow-2xl space-y-5 relative overflow-hidden border border-emerald-500/40">
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="bg-[#005934] px-3 py-1 rounded text-white font-black text-xs tracking-wider">IDBI BANK</div>
+          <span class="text-slate-400 text-xs font-mono font-semibold">FINACLE v11.4</span>
+        </div>
+        <div class="flex items-center space-x-2 text-[10.5px] font-mono text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>NODE #0402 &bull; ONLINE</span>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-black text-white tracking-wide">Officer Authorization Terminal</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Core Banking Ledger & Card Scheme Management</p>
+      </div>
+
+      <form id="form-admin-auth" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center">
+            <i class="fa-solid fa-user-gear mr-1.5 text-emerald-400"></i> Officer User ID
+          </label>
+          <input type="text" id="admin-user-input" required placeholder="Officer Username"
+            class="w-full bg-[#0b1322] border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-mono tracking-wider shadow-inner" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center">
+            <i class="fa-solid fa-key mr-1.5 text-emerald-400"></i> Master Passphrase
+          </label>
+          <div class="relative">
+            <input type="password" id="admin-pass-input" required placeholder="Enter Master Passphrase"
+              class="w-full bg-[#0b1322] border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-mono shadow-inner pr-10" />
+            <button type="button" onclick="togglePassVisibility()" class="absolute right-3.5 top-3 text-slate-400 hover:text-white text-xs">
+              <i id="eye-icon" class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider mb-1.5 flex justify-between items-center">
+            <span><i class="fa-solid fa-calculator mr-1"></i> Captcha Security Token</span>
+            <span id="math-challenge-text" class="font-mono bg-amber-950 px-2.5 py-0.5 rounded border border-amber-500 text-white font-bold text-xs tracking-wider">3 + 8 = ?</span>
+          </label>
+          <input type="number" id="captcha-input" required placeholder="Solve token result"
+            class="w-full bg-[#0b1322] border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 font-mono shadow-inner" />
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-[#005934] to-emerald-600 hover:from-[#00482a] hover:to-emerald-500 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition active:scale-95 shadow-lg shadow-emerald-950/60 cursor-pointer">
+          <i class="fa-solid fa-lock-open mr-1.5"></i> Authenticate & Initialize Terminal
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== CBS MASTER ADMIN PORTAL ==================== -->
+  <div id="admin-main-portal" class="hidden flex-col min-h-screen flex-1">
+    <header class="bg-[#005934] text-white shadow-md border-b border-emerald-600/30">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <div class="bg-white text-[#005934] px-3 py-1 rounded font-black text-sm tracking-wider">IDBI BANK</div>
+          <span class="text-sm uppercase tracking-widest text-emerald-100 font-semibold border-l border-emerald-600 pl-3 hidden sm:inline">
+            CBS Finacle Core Management Console
+          </span>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <div class="text-right text-sm">
+            <p class="font-bold text-white">Officer: <span class="font-mono text-emerald-300">KrishVavdiya1234</span></p>
+            <p class="text-xs text-emerald-200 font-mono" id="live-time"></p>
+          </div>
+          <button onclick="adminLogout()" class="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition">
+            <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Exit CBS
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left Column: Queues & CIF Creation Form -->
+      <div class="space-y-6">
+        
+        <!-- 1. SAVINGS ACCOUNT OPENING REQUESTS QUEUE -->
+        <div class="bg-[#131d31] p-5 rounded-2xl border-2 border-amber-500/70 shadow-xl space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-700 pb-2.5">
+            <h2 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-crown mr-2 text-amber-400"></i> Account Opening Pipeline
+            </h2>
+            <span id="badge-leads-count" class="bg-amber-600 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded-full font-mono">0</span>
+          </div>
+          <div id="savings-leads-list" class="space-y-2.5 max-h-56 overflow-y-auto"></div>
+        </div>
+
+        <!-- 2. REALTIME CUSTOMER AUTHORIZATION QUEUE -->
+        <div class="bg-[#131d31] p-5 rounded-2xl border-2 border-orange-500/60 shadow-lg space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-700 pb-2.5">
+            <h2 class="text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-bell mr-2"></i> Security & Activation Requests
+            </h2>
+            <span id="badge-requests-count" class="bg-orange-600 text-white font-black text-xs px-2.5 py-0.5 rounded-full font-mono">0</span>
+          </div>
+          <div id="unified-requests-list" class="space-y-3 max-h-72 overflow-y-auto"></div>
+        </div>
+
+        <!-- Account Provisioning Card -->
+        <div class="bg-[#131d31] p-5 rounded-2xl border border-slate-700/80 shadow-sm space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-700 pb-2.5">
+            <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-user-plus mr-2 text-orange-500"></i> Customer Onboarding (CIF)
+            </h2>
+            <span class="text-xs bg-emerald-950 text-emerald-300 font-mono px-2 py-0.5 rounded">12-Digit Auto</span>
+          </div>
+
+          <form id="add-account-form" class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Customer Full Name</label>
+              <input type="text" id="holder-name" required placeholder="e.g. Rahul Sharma"
+                class="w-full px-3.5 py-2 border border-slate-700 rounded-lg text-sm bg-[#1e293b] text-white focus:outline-none focus:border-emerald-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Customer Identification File (Cust ID)</label>
+              <input type="text" id="holder-cust-id" required placeholder="e.g. 1001"
+                class="w-full px-3.5 py-2 border border-slate-700 rounded-lg text-sm bg-[#1e293b] text-white font-mono focus:outline-none focus:border-emerald-500" />
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-xs font-bold text-emerald-400">Allocated 12-Digit A/C</label>
+                <button type="button" onclick="generate12DigitAccNum()" class="text-xs text-orange-400 hover:underline font-mono">[Regenerate]</button>
+              </div>
+              <input type="text" id="acc-num" readonly required title="Double click to copy" ondblclick="copyAccountNumber(this.value)"
+                class="w-full px-3.5 py-2 border border-emerald-500/40 rounded-lg text-sm font-mono font-bold text-emerald-300 bg-[#0b1220] focus:outline-none cursor-copy" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-orange-400 mb-1">Initial 4-Digit MPIN</label>
+              <input type="password" id="holder-mpin" required maxlength="4" pattern="[0-9]{4}" placeholder="4 Digit PIN"
+                class="w-full px-3.5 py-2 border border-orange-500/40 rounded-lg text-sm bg-[#1e293b] text-white font-mono font-bold tracking-widest focus:outline-none" />
+            </div>
+
+            <div class="p-3 bg-[#0b1220] rounded-xl border border-slate-700 space-y-2">
+              <span class="text-[11px] font-bold text-blue-400 uppercase block"><i class="fa-solid fa-shield-halved mr-1"></i> Security Answers Setup</span>
+              <input type="text" id="holder-sec-birth" required placeholder="Place of Birth (City)" class="w-full px-3 py-1.5 border border-slate-700 rounded-lg text-xs bg-[#1e293b] text-white focus:outline-none" />
+              <input type="text" id="holder-sec-mother" required placeholder="Mother's Maiden Name" class="w-full px-3 py-1.5 border border-slate-700 rounded-lg text-xs bg-[#1e293b] text-white focus:outline-none" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Initial Opening Deposit (₹)</label>
+              <input type="number" id="init-balance" required min="0" placeholder="e.g. 25000" class="w-full px-3.5 py-2 border border-slate-700 rounded-lg text-sm bg-[#1e293b] text-white font-mono focus:outline-none" />
+            </div>
+
+            <button type="submit" class="w-full bg-[#005934] hover:bg-emerald-700 text-white py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition">
+              Commit & Allocate Account
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Center & Right: Account Operations & Customer Registry -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <div class="bg-[#131d31] p-5 rounded-2xl border border-slate-700/80 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider border-b border-slate-700 pb-2.5 flex items-center">
+            <i class="fa-solid fa-magnifying-glass mr-2 text-orange-400"></i> Account Inquiry & Customer Management
+          </h2>
+          
+          <div class="flex gap-2.5">
+            <input type="text" id="search-acc" placeholder="Enter 12-Digit Account Number or Cust ID..."
+              class="flex-1 px-3.5 py-2 border border-slate-700 rounded-lg text-sm bg-[#1e293b] text-white font-mono focus:outline-none focus:border-emerald-500" />
+            <button id="btn-search" class="bg-[#e65100] hover:bg-orange-700 text-white px-5 py-2 rounded-lg text-xs font-bold tracking-wider">
+              Query Account
+            </button>
+          </div>
+
+          <!-- Account Details Card -->
+          <div id="account-card" class="hidden p-5 rounded-xl bg-[#0b1220] border border-slate-700 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
+              <div>
+                <span class="text-xs uppercase tracking-wider text-slate-400 font-mono">Verified Customer</span>
+                <h3 class="text-lg font-bold text-white mt-0.5" id="card-name">-</h3>
+                <p class="text-sm text-slate-300 font-mono mt-1">
+                  12-Digit A/C: <strong class="text-emerald-400 copyable-acc font-bold" id="card-num" title="Double click to copy" ondblclick="copyAccountNumber(this.textContent)">-</strong> | 
+                  Cust ID: <strong class="text-amber-300 font-mono" id="card-cust-id">-</strong>
+                </p>
+                <p class="text-sm text-slate-300 font-mono">
+                  Card Tier: <span id="card-tier-badge" class="font-bold text-amber-400">Auto (Gold/Platinum)</span> | 
+                  Active MPIN: <span class="text-orange-400 font-bold" id="card-pin">****</span>
+                </p>
+              </div>
+              <div class="sm:text-right">
+                <span class="text-xs uppercase tracking-wider text-slate-400 font-mono">Available Balance</span>
+                <h3 class="text-2xl font-black text-emerald-400 font-mono mt-0.5" id="card-bal">₹0.00</h3>
+                <span id="card-status-badge" class="inline-block text-xs font-bold px-2.5 py-0.5 rounded-full mt-1">Active</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons Grid -->
+            <div class="pt-3 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-6 gap-2">
+              <button id="btn-toggle-freeze" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center transition">
+                <i class="fa-solid fa-snowflake mr-1.5"></i> <span id="freeze-btn-text">Freeze</span>
+              </button>
+
+              <button id="btn-open-change-custid" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center transition">
+                <i class="fa-solid fa-id-badge mr-1.5"></i> Cust ID
+              </button>
+
+              <button id="btn-open-change-pin" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center transition">
+                <i class="fa-solid fa-key mr-1.5"></i> MPIN
+              </button>
+
+              <button id="btn-open-card-scheme" class="bg-yellow-600 hover:bg-yellow-700 text-slate-950 font-black px-3 py-2 rounded-lg text-xs flex items-center justify-center transition">
+                <i class="fa-solid fa-credit-card mr-1.5"></i> Card Type
+              </button>
+
+              <button id="btn-open-change-secq" class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center transition">
+                <i class="fa-solid fa-shield-halved mr-1.5"></i> Sec Q&A
+              </button>
+
+              <button id="btn-open-security-delete" class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center transition col-span-2 sm:col-span-1">
+                <i class="fa-solid fa-trash-can mr-1.5"></i> Purge
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Registry Table -->
+        <div class="bg-[#131d31] p-5 rounded-2xl border border-slate-700/80 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700 pb-3">
+            <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-database mr-2 text-orange-400"></i> Core Account Registry (All Customers)
+            </h2>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse font-mono">
+              <thead>
+                <tr class="bg-[#0b1220] text-slate-300 border-b border-slate-700 font-bold text-xs uppercase tracking-wider">
+                  <th class="p-3">Name</th>
+                  <th class="p-3">Cust ID</th>
+                  <th class="p-3">12-Digit Account Number</th>
+                  <th class="p-3 text-center">Card Tier</th>
+                  <th class="p-3 text-center">Status</th>
+                  <th class="p-3 text-right">Balance</th>
+                  <th class="p-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="accounts-table-body" class="text-[13.5px]"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="modal-card-tier" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0f172a] border border-yellow-500/50 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-sm font-bold text-yellow-400 uppercase tracking-wider flex items-center">
+          <i class="fa-solid fa-credit-card mr-2"></i> Manage Debit Card Tier
+        </h3>
+        <p class="text-xs text-slate-400">Select card tier for customer. Auto-mode allocates Gold for $\ge$ ₹1 Crore balance and Platinum if less.</p>
+        
+        <div class="space-y-3">
+          <label class="block text-xs font-semibold text-slate-300">Allocated Card Scheme</label>
+          <select id="select-card-tier" class="w-full px-3.5 py-2.5 border border-slate-700 rounded-lg text-sm bg-[#1e293b] text-white focus:outline-none">
+            <option value="auto">Auto (Balance Rule: &ge; ₹1 Cr = Gold, &lt; ₹1 Cr = Platinum)</option>
+            <option value="gold">Gold Card (VIP Executive Edition)</option>
+            <option value="platinum">Platinum Card (Standard Edition)</option>
+          </select>
+        </div>
+
+        <div class="flex gap-2.5 pt-2">
+          <button onclick="saveCardTierSetting()" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-slate-950 font-black py-2.5 rounded-lg text-xs uppercase">Save Tier</button>
+          <button onclick="closeModalDirect('modal-card-tier')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-lg text-xs font-bold uppercase">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-change-secq" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0f172a] border border-teal-500/50 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-sm font-bold text-teal-400 uppercase">Modify Security Q&A</h3>
+        <input type="text" id="input-edit-birth" placeholder="Place of Birth" class="w-full px-3.5 py-2 border border-slate-700 rounded-lg text-xs bg-[#1e293b] text-white" />
+        <input type="text" id="input-edit-mother" placeholder="Mother's Maiden Name" class="w-full px-3.5 py-2 border border-slate-700 rounded-lg text-xs bg-[#1e293b] text-white" />
+        <div class="flex gap-2.5">
+          <button onclick="saveSecurityAnswers()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded text-xs font-bold uppercase">Save</button>
+          <button onclick="closeModalDirect('modal-change-secq')" class="flex-1 bg-slate-700 text-white py-2 rounded text-xs font-bold uppercase">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-change-custid" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0f172a] border border-purple-500/50 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-sm font-bold text-purple-400 uppercase">Modify Customer ID</h3>
+        <input type="text" id="input-new-custid" placeholder="New Unique Cust ID" class="w-full px-3.5 py-2 border border-slate-700 rounded-lg text-xs bg-[#1e293b] text-white" />
+        <div class="flex gap-2.5">
+          <button onclick="saveNewCustId()" class="flex-1 bg-purple-600 text-white py-2 rounded text-xs font-bold uppercase">Save</button>
+          <button onclick="closeModalDirect('modal-change-custid')" class="flex-1 bg-slate-700 text-white py-2 rounded text-xs font-bold uppercase">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-change-pin" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0f172a] border border-slate-700 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-sm font-bold text-emerald-400 uppercase">Modify MPIN</h3>
+        <input type="password" id="input-new-pin" maxlength="4" placeholder="4-Digit PIN" class="w-full px-3.5 py-2 border border-slate-700 rounded-lg text-xs bg-[#1e293b] text-white text-center font-mono" />
+        <div class="flex gap-2.5">
+          <button onclick="saveNewMpinDirect()" class="flex-1 bg-emerald-600 text-white py-2 rounded text-xs font-bold uppercase">Save</button>
+          <button onclick="closeModalDirect('modal-change-pin')" class="flex-1 bg-slate-700 text-white py-2 rounded text-xs font-bold uppercase">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-manual-override" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0f172a] border border-blue-500/50 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider" id="override-modal-title">Officer Manual Override</h3>
+        <p class="text-xs text-slate-400" id="override-modal-sub">-</p>
+        <input type="text" id="input-override-val" class="w-full px-3.5 py-2.5 border border-slate-700 rounded-lg text-sm bg-[#1e293b] text-white font-mono focus:outline-none" />
+        <div class="flex gap-2.5 pt-2">
+          <button onclick="commitManualOverride()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold uppercase">Authorize & Commit</button>
+          <button onclick="closeModalDirect('modal-manual-override')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-lg text-xs font-bold uppercase">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-security-delete" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
+      <div class="bg-[#0f172a] border-2 border-red-600/70 rounded-2xl max-w-md w-full p-6 text-white shadow-2xl space-y-4">
+        <h3 class="text-sm font-bold text-red-400 uppercase">Permanent Purge Protocol</h3>
+        <input type="text" id="input-del-officer" placeholder="Officer ID: KrishVavdiya1234" class="w-full px-3 py-2 border border-slate-700 rounded bg-[#1e293b] text-white text-xs font-mono" />
+        <input type="text" id="input-del-token" placeholder="Matching Token" class="w-full px-3 py-2 border border-slate-700 rounded bg-[#1e293b] text-white text-xs font-mono uppercase" />
+        <input type="text" id="input-del-phrase" placeholder="DELETE PERMANENTLY" class="w-full px-3 py-2 border border-slate-700 rounded bg-[#1e293b] text-white text-xs font-mono uppercase" />
+        <div class="flex gap-2.5">
+          <button onclick="executeSecurePurge()" class="flex-1 bg-red-700 hover:bg-red-800 text-white py-2 rounded text-xs font-bold uppercase">Purge</button>
+          <button onclick="closeModalDirect('modal-security-delete')" class="flex-1 bg-slate-700 text-white py-2 rounded text-xs font-bold uppercase">Abort</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    window.copyAccountNumber = function(accText) {
+      if (!accText || accText === '-') return;
+      navigator.clipboard.writeText(accText.trim()).then(() => {
+        const toast = document.getElementById('copy-toast');
+        document.getElementById('copy-toast-msg').textContent = `Account ${accText.trim()} Copied!`;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2000);
+      });
+    };
+
+    window.closeModalDirect = function(id) { document.getElementById(id).classList.add('hidden'); };
+
+    let challengeAnswer = 0;
+    function generateChallenge() {
+      const n1 = Math.floor(Math.random() * 8) + 2;
+      const n2 = Math.floor(Math.random() * 8) + 2;
+      challengeAnswer = n1 + n2;
+      document.getElementById('math-challenge-text').textContent = `${n1} + ${n2} = ?`;
+      document.getElementById('captcha-input').value = '';
+    }
+    generateChallenge();
+
+    if (sessionStorage.getItem('idbi_cbs_auth') === 'true') {
+      document.getElementById('admin-login-screen').classList.add('hidden');
+      document.getElementById('admin-main-portal').classList.remove('hidden');
+      document.getElementById('admin-main-portal').classList.add('flex');
+    }
+
+    document.getElementById('form-admin-auth').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = document.getElementById('admin-user-input').value.trim();
+      const pass = document.getElementById('admin-pass-input').value;
+      const captcha = parseInt(document.getElementById('captcha-input').value);
+
+      if (captcha !== challengeAnswer) {
+        alert('Invalid Captcha Token!');
+        generateChallenge();
+        return;
+      }
+
+      if (user === "KrishVavdiya1234" && pass === "KLVQWER(123456789)") {
+        sessionStorage.setItem('idbi_cbs_auth', 'true');
+        document.getElementById('admin-login-screen').classList.add('hidden');
+        document.getElementById('admin-main-portal').classList.remove('hidden');
+        document.getElementById('admin-main-portal').classList.add('flex');
+        generate12DigitAccNum();
+      } else {
+        alert('Invalid Officer Credentials!');
+        generateChallenge();
+      }
+    });
+
+    function togglePassVisibility() {
+      const passInput = document.getElementById('admin-pass-input');
+      const eyeIcon = document.getElementById('eye-icon');
+      passInput.type = passInput.type === 'password' ? 'text' : 'password';
+      eyeIcon.classList.toggle('fa-eye');
+      eyeIcon.classList.toggle('fa-eye-slash');
+    }
+
+    window.adminLogout = function() {
+      sessionStorage.removeItem('idbi_cbs_auth');
+      document.getElementById('admin-main-portal').classList.add('hidden');
+      document.getElementById('admin-main-portal').classList.remove('flex');
+      document.getElementById('admin-login-screen').classList.remove('hidden');
+      generateChallenge();
+    };
+
+    const DEFAULT_ACCOUNTS = [
+      { id: '1', name: 'Rahul Sharma', custId: '1001', accNum: '102345678901', mpin: '1234', type: 'Savings Account', balance: 75420.50, isFrozen: false, secBirth: 'Mumbai', secMother: 'Sharma', cardTier: 'auto' },
+      { id: '2', name: 'Pooja Verma', custId: '1002', accNum: '102345678902', mpin: '5678', type: 'Salary Account', balance: 11492000.00, isFrozen: false, secBirth: 'Delhi', secMother: 'Verma', cardTier: 'auto' }
+    ];
+
+    let currentSelectedAcc = null;
+    let currentPurgeToken = '';
+    let currentOverrideItem = null;
+
+    function getAccounts() {
+      const data = localStorage.getItem('idbi_demo_accounts');
+      return data ? JSON.parse(data) : DEFAULT_ACCOUNTS;
+    }
+
+    function saveAccounts(accounts) {
+      localStorage.setItem('idbi_demo_accounts', JSON.stringify(accounts));
+      renderTable();
+      if (currentSelectedAcc) {
+        const updated = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
+        if (updated) displayAccountCard(updated);
+        else document.getElementById('account-card').classList.add('hidden');
+      }
+    }
+
+    function generate12DigitAccNum() {
+      const generated = '102' + Math.floor(100000000 + Math.random() * 900000000);
+      document.getElementById('acc-num').value = generated;
+      return generated;
+    }
+
+    function getSavingsLeads() { return JSON.parse(localStorage.getItem('idbi_savings_leads') || '[]'); }
+    function saveSavingsLeads(leads) { localStorage.setItem('idbi_savings_leads', JSON.stringify(leads)); renderSavingsLeads(); }
+
+    function renderSavingsLeads() {
+      const leads = getSavingsLeads();
+      const container = document.getElementById('savings-leads-list');
+      document.getElementById('badge-leads-count').textContent = leads.length;
+      container.innerHTML = '';
+
+      if (leads.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-3 font-mono">No incoming applications.</p>`;
+        return;
+      }
+
+      leads.forEach((lead, idx) => {
+        const item = document.createElement('div');
+        item.className = 'p-3 rounded-xl border border-amber-500/40 bg-[#1e293b] flex flex-col space-y-2 text-xs font-mono shadow-sm';
+        item.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="font-bold text-white text-sm">${lead.name}</p>
+              <p class="text-amber-400 font-bold mt-0.5">+91 ${lead.phone}</p>
+            </div>
+            <span class="bg-amber-950 text-amber-300 border border-amber-500/40 text-[9.5px] px-2 py-0.5 rounded font-bold">${lead.refId || 'VIP LEAD'}</span>
+          </div>
+          <div class="flex gap-2 pt-1 border-t border-slate-700/80">
+            <button onclick="approveSavingsLead(${idx})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] py-1.5 rounded font-bold uppercase">
+              Allocate CIF
+            </button>
+            <button onclick="dismissSavingsLead(${idx})" class="bg-slate-700 hover:bg-red-700 text-slate-200 px-3 py-1.5 rounded text-[11px] font-bold">
+              Dismiss
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    window.approveSavingsLead = function(idx) {
+      const leads = getSavingsLeads();
+      const lead = leads[idx];
+      if (!lead) return;
+
+      document.getElementById('holder-name').value = lead.name;
+      const accounts = getAccounts();
+      document.getElementById('holder-cust-id').value = (1000 + accounts.length + 1).toString();
+      document.getElementById('holder-mpin').value = '1234';
+      document.getElementById('holder-sec-birth').value = 'India';
+      document.getElementById('holder-sec-mother').value = lead.name.split(' ')[1] || 'Maiden';
+      document.getElementById('init-balance').value = '25000';
+      generate12DigitAccNum();
+
+      leads.splice(idx, 1);
+      saveSavingsLeads(leads);
+      document.getElementById('add-account-form').scrollIntoView({ behavior: 'smooth' });
+      alert(`Loaded application for ${lead.name}. Review deposit details and commit.`);
+    };
+
+    window.dismissSavingsLead = function(idx) {
+      const leads = getSavingsLeads();
+      leads.splice(idx, 1);
+      saveSavingsLeads(leads);
+    };
+
+    function getAdminRequests() { return JSON.parse(localStorage.getItem('idbi_admin_approval_requests') || '[]'); }
+    function saveAdminRequests(reqs) { localStorage.setItem('idbi_admin_approval_requests', JSON.stringify(reqs)); renderUnifiedRequests(); }
+
+    function renderUnifiedRequests() {
+      const reqs = getAdminRequests();
+      const container = document.getElementById('unified-requests-list');
+      document.getElementById('badge-requests-count').textContent = reqs.length;
+      container.innerHTML = '';
+
+      if (reqs.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4 font-mono">No incoming authorization requests.</p>`;
+        return;
+      }
+
+      reqs.forEach((r, idx) => {
+        let badgeColor = 'bg-orange-950 text-orange-300 border-orange-500/40';
+        let badgeText = 'REQUEST';
+        let subText = '';
+
+        if (r.type === 'ACTIVATE_APP') {
+          badgeColor = 'bg-amber-950 text-amber-300 border-amber-500/40';
+          badgeText = 'ACTIVATE APP';
+          subText = `Card: •••• ${r.details.cardLast4} | Desired MPIN: ${r.details.desiredMpin}`;
+        } else if (r.type === 'RESET_MPIN') {
+          badgeColor = 'bg-orange-950 text-orange-300 border-orange-500/40';
+          badgeText = 'RESET MPIN';
+          subText = `Requested New MPIN: ${r.details.newMpin}`;
+        } else if (r.type === 'UNLOCK_SECURITY') {
+          badgeColor = 'bg-blue-950 text-blue-300 border-blue-500/40';
+          badgeText = 'UNLOCK ACCOUNT';
+          subText = r.details.fallbackMode ? `Contact: +91 ${r.details.phone}` : `Verified: ${r.details.birthCity} / ${r.details.maidenName}`;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'p-3.5 rounded-xl border border-slate-700 bg-[#1e293b] flex flex-col space-y-2 text-xs font-mono shadow-md';
+        item.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[9.5px] px-2 py-0.5 rounded font-bold uppercase border ${badgeColor}">${badgeText}</span>
+              <p class="font-bold text-white text-sm mt-1.5">A/C: <span class="text-emerald-400 copyable-acc" ondblclick="copyAccountNumber('${r.account}')">${r.account}</span> (${r.details.name || 'Verified'})</p>
+              <p class="text-[11px] text-slate-300 mt-0.5">${subText}</p>
+            </div>
+            <span class="text-[10px] text-slate-400 font-bold">${r.refId}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 pt-1">
+            <button onclick="approveRequestDirect(${idx})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] py-1.5 rounded font-bold uppercase">Approve</button>
+            <button onclick="openManualOverrideDialog(${idx})" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] py-1.5 rounded font-bold uppercase">Override</button>
+            <button onclick="rejectRequestDirect(${idx})" class="bg-red-700 hover:bg-red-800 text-white text-[11px] py-1.5 rounded font-bold uppercase">Reject</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    window.approveRequestDirect = function(idx) {
+      const reqs = getAdminRequests();
+      const r = reqs[idx];
+      if (!r) return;
+
+      const accounts = getAccounts();
+      const target = accounts.find(a => a.accNum === r.account || (a.custId && a.custId.toLowerCase() === r.account.toLowerCase()));
+
+      if (!target) {
+        alert('Target account not found.');
+        reqs.splice(idx, 1);
+        saveAdminRequests(reqs);
+        return;
+      }
+
+      if (r.type === 'ACTIVATE_APP' || r.type === 'RESET_MPIN') {
+        target.mpin = r.details.desiredMpin || r.details.newMpin;
+        target.isFrozen = false;
+        alert(`Account ${target.accNum} MPIN set to ${target.mpin}.`);
+      } else if (r.type === 'UNLOCK_SECURITY') {
+        target.isFrozen = false;
+        alert(`Account ${target.accNum} unblocked.`);
+      }
+
+      saveAccounts(accounts);
+      reqs.splice(idx, 1);
+      saveAdminRequests(reqs);
+    };
+
+    window.rejectRequestDirect = function(idx) {
+      const reqs = getAdminRequests();
+      const r = reqs[idx];
+      if (confirm(`Reject request ${r.refId}?`)) {
+        reqs.splice(idx, 1);
+        saveAdminRequests(reqs);
+      }
+    };
+
+    window.openManualOverrideDialog = function(idx) {
+      const reqs = getAdminRequests();
+      currentOverrideItem = { req: reqs[idx], index: idx };
+      const r = reqs[idx];
+      document.getElementById('override-modal-title').textContent = `Override ${r.refId}`;
+      document.getElementById('override-modal-sub').textContent = `Account: ${r.account}`;
+      document.getElementById('input-override-val').value = r.details.desiredMpin || r.details.newMpin || '1234';
+      document.getElementById('modal-manual-override').classList.remove('hidden');
+    };
+
+    window.commitManualOverride = function() {
+      if (!currentOverrideItem) return;
+      const val = document.getElementById('input-override-val').value.trim();
+      const r = currentOverrideItem.req;
+      const accounts = getAccounts();
+      const target = accounts.find(a => a.accNum === r.account || (a.custId && a.custId.toLowerCase() === r.account.toLowerCase()));
+
+      if (target) {
+        target.mpin = val;
+        target.isFrozen = false;
+        saveAccounts(accounts);
+        alert(`Override Committed for account ${target.accNum}.`);
+      }
+      const reqs = getAdminRequests();
+      reqs.splice(currentOverrideItem.index, 1);
+      saveAdminRequests(reqs);
+      closeModalDirect('modal-manual-override');
+    };
+
+    // Account Creation
+    document.getElementById('add-account-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('holder-name').value.trim();
+      const custId = document.getElementById('holder-cust-id').value.trim();
+      const accNum = document.getElementById('acc-num').value.trim();
+      const mpin = document.getElementById('holder-mpin').value.trim();
+      const secBirth = document.getElementById('holder-sec-birth').value.trim();
+      const secMother = document.getElementById('holder-sec-mother').value.trim();
+      const balance = parseFloat(document.getElementById('init-balance').value);
+
+      const accounts = getAccounts();
+      if (accounts.some(a => a.custId.toLowerCase() === custId.toLowerCase())) {
+        return alert(`Cust ID "${custId}" is already assigned.`);
+      }
+
+      accounts.push({ id: Date.now().toString(), name, custId, accNum, mpin, type: 'Savings Account', balance, isFrozen: false, secBirth, secMother, cardTier: 'auto' });
+      saveAccounts(accounts);
+      e.target.reset();
+      generate12DigitAccNum();
+      alert(`Customer CIF provisioned!\nAccount: ${accNum}\nCust ID: ${custId}`);
+    });
+
+    function getCardTierLabel(acc) {
+      if (acc.cardTier === 'gold') return 'Gold Card (Forced VIP)';
+      if (acc.cardTier === 'platinum') return 'Platinum Card (Forced Std)';
+      return Number(acc.balance) >= 10000000 ? 'Gold Card (Auto >= 1Cr)' : 'Platinum Card (Auto < 1Cr)';
+    }
+
+    function displayAccountCard(account) {
+      currentSelectedAcc = account;
+      const card = document.getElementById('account-card');
+      document.getElementById('card-name').textContent = account.name;
+      document.getElementById('card-num').textContent = account.accNum;
+      document.getElementById('card-cust-id').textContent = account.custId;
+      document.getElementById('card-pin').textContent = account.mpin;
+      document.getElementById('card-tier-badge').textContent = getCardTierLabel(account);
+      document.getElementById('card-bal').textContent = `₹${Number(account.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+      const badge = document.getElementById('card-status-badge');
+      const freezeBtnText = document.getElementById('freeze-btn-text');
+      if (account.isFrozen) {
+        badge.className = 'inline-block bg-red-950 text-red-300 border border-red-800 text-xs font-bold px-3 py-1 rounded-full mt-1 font-mono';
+        badge.textContent = 'STATUS: FROZEN';
+        freezeBtnText.textContent = 'Unfreeze';
+      } else {
+        badge.className = 'inline-block bg-emerald-950 text-emerald-300 border border-emerald-800 text-xs font-bold px-3 py-1 rounded-full mt-1 font-mono';
+        badge.textContent = 'STATUS: ACTIVE';
+        freezeBtnText.textContent = 'Freeze';
+      }
+      card.classList.remove('hidden');
+    }
+
+    document.getElementById('btn-search').addEventListener('click', () => {
+      const q = document.getElementById('search-acc').value.trim().toLowerCase();
+      const accounts = getAccounts();
+      const found = accounts.find(a => a.accNum === q || a.custId.toLowerCase() === q);
+      if (found) displayAccountCard(found);
+      else alert('Account not found.');
+    });
+
+    document.getElementById('btn-toggle-freeze').addEventListener('click', () => {
+      if (!currentSelectedAcc) return;
+      const accounts = getAccounts();
+      const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
+      if (target) {
+        target.isFrozen = !target.isFrozen;
+        saveAccounts(accounts);
+        alert(`Account ${target.accNum} status: ${target.isFrozen ? 'FROZEN' : 'ACTIVE'}`);
+      }
+    });
+
+    // Card Tier Settings
+    document.getElementById('btn-open-card-scheme').addEventListener('click', () => {
+      if (!currentSelectedAcc) return;
+      document.getElementById('select-card-tier').value = currentSelectedAcc.cardTier || 'auto';
+      document.getElementById('modal-card-tier').classList.remove('hidden');
+    });
+
+    window.saveCardTierSetting = function() {
+      if (!currentSelectedAcc) return;
+      const tier = document.getElementById('select-card-tier').value;
+      const accounts = getAccounts();
+      const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
+      if (target) {
+        target.cardTier = tier;
+        saveAccounts(accounts);
+        closeModalDirect('modal-card-tier');
+        alert(`Debit Card Scheme for ${target.name} updated to: ${getCardTierLabel(target)}`);
+      }
+    };
+
+    document.getElementById('btn-open-change-secq').addEventListener('click', () => {
+      if (!currentSelectedAcc) return;
+      document.getElementById('input-edit-birth').value = currentSelectedAcc.secBirth || '';
+      document.getElementById('input-edit-mother').value = currentSelectedAcc.secMother || '';
+      document.getElementById('modal-change-secq').classList.remove('hidden');
+    });
+
+    window.saveSecurityAnswers = function() {
+      if (!currentSelectedAcc) return;
+      const birth = document.getElementById('input-edit-birth').value.trim();
+      const mother = document.getElementById('input-edit-mother').value.trim();
+      const accounts = getAccounts();
+      const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
+      if (target) {
+        target.secBirth = birth;
+        target.secMother = mother;
+        saveAccounts(accounts);
+        closeModalDirect('modal-change-secq');
+        alert('Security answers saved.');
+      }
+    };
+
+    document.getElementById('btn-open-change-custid').addEventListener('click', () => {
+      if (!currentSelectedAcc) return;
+      document.getElementById('input-new-custid').value = currentSelectedAcc.custId;
+      document.getElementById('modal-change-custid').classList.remove('hidden');
+    });
+
+    window.saveNewCustId = function() {
+      if (!currentSelectedAcc) return;
+      const newId = document.getElementById('input-new-custid').value.trim();
+      const accounts = getAccounts();
+      if (accounts.some(a => a.accNum !== currentSelectedAcc.accNum && a.custId.toLowerCase() === newId.toLowerCase())) {
+        return alert(`Cust ID "${newId}" is already assigned.`);
+      }
+      const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
+      if (target) {
+        target.custId = newId;
+        saveAccounts(accounts);
+        closeModalDirect('modal-change-custid');
+        alert(`Cust ID updated to ${newId}`);
+      }
+    };
+
+    document.getElementById('btn-open-change-pin').addEventListener('click', () => {
+      if (!currentSelectedAcc) return;
+      document.getElementById('input-new-pin').value = '';
+      document.getElementById('modal-change-pin').classList.remove('hidden');
+    });
+
+    window.saveNewMpinDirect = function() {
+      if (!currentSelectedAcc) return;
+      const pin = document.getElementById('input-new-pin').value.trim();
+      if (pin.length !== 4 || isNaN(pin)) return alert('4-digit PIN required.');
+      const accounts = getAccounts();
+      const target = accounts.find(a => a.accNum === currentSelectedAcc.accNum);
+      if (target) {
+        target.mpin = pin;
+        saveAccounts(accounts);
+        closeModalDirect('modal-change-pin');
+        alert('MPIN updated.');
+      }
+    };
+
+    document.getElementById('btn-open-security-delete').addEventListener('click', () => {
+      if (!currentSelectedAcc) return;
+      currentPurgeToken = `PURGE-${Math.floor(100000 + Math.random() * 900000)}`;
+      document.getElementById('delete-security-token').textContent = currentPurgeToken;
+      document.getElementById('modal-security-delete').classList.remove('hidden');
+    });
+
+    window.executeSecurePurge = function() {
+      if (!currentSelectedAcc) return;
+      const officer = document.getElementById('input-del-officer').value.trim();
+      const token = document.getElementById('input-del-token').value.trim().toUpperCase();
+      const phrase = document.getElementById('input-del-phrase').value.trim().toUpperCase();
+
+      if (officer !== "KrishVavdiya1234" || token !== currentPurgeToken || phrase !== "DELETE PERMANENTLY") {
+        return alert('Security clearance failed.');
+      }
+
+      let accounts = getAccounts().filter(a => a.accNum !== currentSelectedAcc.accNum);
+      saveAccounts(accounts);
+      currentSelectedAcc = null;
+      document.getElementById('account-card').classList.add('hidden');
+      closeModalDirect('modal-security-delete');
+      alert('Account permanently purged.');
+    };
+
+    function renderTable() {
+      const accounts = getAccounts();
+      const tbody = document.getElementById('accounts-table-body');
+      tbody.innerHTML = '';
+      accounts.forEach((acc) => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-800 hover:bg-[#1e293b]/60';
+        tr.innerHTML = `
+          <td class="p-3 font-bold text-white">${acc.name}</td>
+          <td class="p-3 text-amber-300 font-mono font-bold">${acc.custId}</td>
+          <td class="p-3 text-emerald-400 font-bold tracking-wider copyable-acc" ondblclick="copyAccountNumber('${acc.accNum}')">${acc.accNum}</td>
+          <td class="p-3 text-center text-xs font-bold ${getCardTierLabel(acc).includes('Gold') ? 'text-amber-400' : 'text-slate-300'}">${getCardTierLabel(acc).includes('Gold') ? 'GOLD' : 'PLATINUM'}</td>
+          <td class="p-3 text-center">${acc.isFrozen ? '<span class="text-red-400 font-bold">FROZEN</span>' : '<span class="text-emerald-400 font-bold">ACTIVE</span>'}</td>
+          <td class="p-3 text-right font-bold text-emerald-400">₹${Number(acc.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+          <td class="p-3 text-center"><button onclick="displayAccountCard(getAccounts().find(a=>a.accNum==='${acc.accNum}'))" class="text-xs text-orange-400 font-bold">[MANAGE]</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    setInterval(() => {
+      document.getElementById('live-time').textContent = new Date().toLocaleTimeString();
+      renderSavingsLeads();
+      renderUnifiedRequests();
+    }, 1000);
+
+    generate12DigitAccNum();
+    renderTable();
+    renderSavingsLeads();
+    renderUnifiedRequests();
+  </script>
+</body>
+</html>
