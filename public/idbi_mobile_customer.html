@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>IDBI Bank GO Mobile+</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- Direct CDN fallback for Socket.io -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -629,8 +630,15 @@
   </div>
 
   <script>
-    const socket = io();
-    const OTP_API_BASE = window.location.origin + '/api';
+    let socket;
+    try {
+      socket = io();
+    } catch(e) {
+      console.warn("Socket.io direct connection fallback active");
+    }
+
+    const API_BASE = window.location.origin + '/api';
+    const OTP_API_BASE = API_BASE;
     let currentAuthPhone = '';
     let isCardFlipped = false;
     let activeAccount = null;
@@ -638,12 +646,33 @@
     let localAccounts = [];
     let localTransactions = [];
 
-    // ================= REAL-TIME WEBSOCKET LISTENER =================
-    socket.on('cbs_state_sync', (state) => {
-      localAccounts = state.accounts || [];
-      localTransactions = state.transactions || [];
-      refreshActiveAccountUI();
-    });
+    // Sync state directly from REST endpoint
+    async function syncStateFromServer() {
+      try {
+        const res = await fetch(`${API_BASE}/state`);
+        const state = await res.json();
+        localAccounts = state.accounts || [];
+        localTransactions = state.transactions || [];
+        refreshActiveAccountUI();
+      } catch (err) {
+        console.error("State sync error:", err);
+      }
+    }
+
+    // Initialize state on page load
+    syncStateFromServer();
+
+    // Listen to real-time socket events
+    if (socket) {
+      socket.on('cbs_state_sync', (state) => {
+        localAccounts = state.accounts || [];
+        localTransactions = state.transactions || [];
+        refreshActiveAccountUI();
+      });
+    }
+
+    // High-frequency polling fallback
+    setInterval(syncStateFromServer, 1000);
 
     function refreshActiveAccountUI() {
       if (!activeAccount) return;
@@ -787,7 +816,7 @@
 
     window.closeModalDirect = function(id) { document.getElementById(id).classList.add('hidden'); };
 
-    // ================= REALTIME EMITTERS =================
+    // Emitters
     function emitAdminRequest(type, targetAcc, details) {
       const refId = type.slice(0, 3).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
       const reqObj = {
@@ -798,7 +827,12 @@
         details: details,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      socket.emit('new_admin_request', reqObj);
+      if (socket) socket.emit('new_admin_request', reqObj);
+      fetch(`${API_BASE}/requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqObj)
+      });
       return refId;
     }
 
@@ -807,36 +841,45 @@
     window.openSecurityQuestionsModal = function() { document.getElementById('stage-sec-form').classList.remove('hidden'); document.getElementById('stage-sec-fallback').classList.add('hidden'); document.getElementById('modal-security-questions').classList.remove('hidden'); };
     window.openPrivateBankingOnboarding = function() { document.getElementById('modal-savings-onboarding').classList.remove('hidden'); };
 
-    window.dispatchActivationRequest = function() {
+    window.dispatchActivationRequest = async function() {
       const acc = document.getElementById('act-cust-id').value.trim();
       const card = document.getElementById('act-card-num').value.trim();
       const mpin = document.getElementById('act-new-mpin').value.trim();
       if (!acc || card.length !== 16 || isNaN(card) || mpin.length !== 4) return alert('Invalid credentials entered.');
+      
+      await syncStateFromServer();
       const found = localAccounts.find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
       if (!found) return alert('Account record does not exist in IDBI records.');
+      
       emitAdminRequest('ACTIVATE_APP', found.accNum, { cardLast4: card.slice(-4), desiredMpin: mpin, name: found.name });
       closeModalDirect('modal-activate-app');
       alert('Activation request transmitted instantly to CBS Terminal.');
     };
 
-    window.dispatchMpinResetRequest = function() {
+    window.dispatchMpinResetRequest = async function() {
       const acc = document.getElementById('reset-mpin-acc').value.trim();
       const mpin = document.getElementById('reset-mpin-new').value.trim();
       if (!acc || mpin.length !== 4) return alert('Enter valid account and 4-digit MPIN.');
+      
+      await syncStateFromServer();
       const found = localAccounts.find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
       if (!found) return alert('Account record not found.');
+      
       emitAdminRequest('RESET_MPIN', found.accNum, { newMpin: mpin, name: found.name });
       closeModalDirect('modal-reset-mpin-direct');
       alert('MPIN reset request queued on CBS officer screen.');
     };
 
-    window.dispatchSecurityUnlockRequest = function() {
+    window.dispatchSecurityUnlockRequest = async function() {
       const acc = document.getElementById('sec-cust-id').value.trim();
       const ans1 = document.getElementById('sec-ans-1').value.trim().toLowerCase();
       const ans2 = document.getElementById('sec-ans-2').value.trim().toLowerCase();
       if (!acc) return alert('Enter Customer ID or Account.');
+      
+      await syncStateFromServer();
       const found = localAccounts.find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
       if (!found) return alert('Account record not found.');
+      
       if (!found.secBirth || !found.secMother) {
         document.getElementById('sec-fallback-acc').value = `${found.accNum} (${found.name})`;
         document.getElementById('stage-sec-form').classList.add('hidden');
@@ -844,16 +887,20 @@
         return;
       }
       if (ans1 !== found.secBirth.toLowerCase() || ans2 !== found.secMother.toLowerCase()) return alert('Security Answers Mismatch.');
+      
       emitAdminRequest('UNLOCK_SECURITY', found.accNum, { birthCity: ans1, maidenName: ans2, name: found.name, verified: true });
       closeModalDirect('modal-security-questions');
       alert('Unlock request sent to compliance terminal.');
     };
 
-    window.dispatchFallbackUnlockRequest = function() {
+    window.dispatchFallbackUnlockRequest = async function() {
       const phone = document.getElementById('sec-fallback-phone').value.trim();
       const acc = document.getElementById('sec-cust-id').value.trim();
       if (!phone || phone.length < 10) return alert('Enter valid phone.');
+      
+      await syncStateFromServer();
       const found = localAccounts.find(a => a.accNum === acc || (a.custId && a.custId.toLowerCase() === acc.toLowerCase()));
+      
       emitAdminRequest('UNLOCK_SECURITY', found ? found.accNum : acc, { phone: phone, name: found ? found.name : 'Unknown', fallbackMode: true });
       closeModalDirect('modal-security-questions');
       alert('Contact number submitted to officer for verification.');
@@ -871,7 +918,12 @@
         phone: phone,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      socket.emit('new_savings_lead', leadObj);
+      if (socket) socket.emit('new_savings_lead', leadObj);
+      fetch(`${API_BASE}/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadObj)
+      });
       closeModalDirect('modal-savings-onboarding');
       alert('Account application received. Live alert sent to admin terminal.');
     };
@@ -960,21 +1012,24 @@
       }
     };
 
-    window.executeDashboardTransfer = function() {
+    window.executeDashboardTransfer = async function() {
       const toAcc = document.getElementById('dash-to-acc').value.trim();
       const amt = parseFloat(document.getElementById('dash-to-amt').value);
       if (!toAcc || isNaN(amt) || amt <= 0) return alert('Enter valid account and amount.');
       if (!activeAccount) return alert('Session expired.');
 
+      await syncStateFromServer();
       const receiver = localAccounts.find(a => a.accNum === toAcc);
       if (!receiver) return alert('Beneficiary not found.');
       if (activeAccount.balance < amt) return alert('Insufficient balance.');
 
-      socket.emit('execute_fund_transfer', {
-        fromAcc: activeAccount.accNum,
-        toAcc: toAcc,
-        amount: amt
-      });
+      if (socket) {
+        socket.emit('execute_fund_transfer', {
+          fromAcc: activeAccount.accNum,
+          toAcc: toAcc,
+          amount: amt
+        });
+      }
 
       document.getElementById('dash-to-acc').value = '';
       document.getElementById('dash-to-amt').value = '';
@@ -987,7 +1042,7 @@
       inp.placeholder = cat === 'Electricity' ? 'Enter Consumer Service No.' : 'Enter Service ID / Number';
     };
 
-    window.processBillPayment = function() {
+    window.processBillPayment = async function() {
       const cat = document.getElementById('bill-category').value;
       const num = document.getElementById('bill-consumer-no').value.trim();
       const amt = parseFloat(document.getElementById('bill-amount').value);
@@ -996,10 +1051,17 @@
       if (isNaN(amt) || amt <= 0) return alert('Enter valid amount.');
       if (!activeAccount) return alert('Session expired.');
 
+      await syncStateFromServer();
       if (activeAccount.balance < amt) return alert('Insufficient balance.');
 
       activeAccount.balance -= amt;
-      socket.emit('admin_update_accounts', localAccounts);
+      const updated = localAccounts.map(a => a.accNum === activeAccount.accNum ? activeAccount : a);
+      if (socket) socket.emit('admin_update_accounts', updated);
+      fetch(`${API_BASE}/accounts`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
 
       document.getElementById('bill-consumer-no').value = '';
       document.getElementById('bill-amount').value = '';
@@ -1009,7 +1071,13 @@
     window.toggleDebitCardLock = function() {
       if (!activeAccount) return;
       activeAccount.isCardLocked = !activeAccount.isCardLocked;
-      socket.emit('admin_update_accounts', localAccounts);
+      const updated = localAccounts.map(a => a.accNum === activeAccount.accNum ? activeAccount : a);
+      if (socket) socket.emit('admin_update_accounts', updated);
+      fetch(`${API_BASE}/accounts`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
       alert(activeAccount.isCardLocked ? 'Card Locked for safety.' : 'Card Active & Operational.');
     };
 
@@ -1019,7 +1087,13 @@
       if (!activeAccount) return;
 
       activeAccount.cardPin = pin;
-      socket.emit('admin_update_accounts', localAccounts);
+      const updated = localAccounts.map(a => a.accNum === activeAccount.accNum ? activeAccount : a);
+      if (socket) socket.emit('admin_update_accounts', updated);
+      fetch(`${API_BASE}/accounts`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
       document.getElementById('input-new-atmpin').value = '';
       alert('Card PIN updated instantly across core ledger.');
     };
@@ -1057,16 +1131,32 @@
       });
     }
 
-    // Login Functionality
-    document.getElementById('btn-login').addEventListener('click', () => {
+    // Direct Login Handler with Server-Side Fetch
+    document.getElementById('btn-login').addEventListener('click', async () => {
       const input = document.getElementById('input-cust-id').value.trim().toLowerCase();
       const mpin = document.getElementById('input-mpin').value.trim();
 
-      const found = localAccounts.find(a => a.accNum.toLowerCase() === input || (a.custId && a.custId.toLowerCase() === input));
+      if (!input || !mpin) {
+        return alert('Please enter both your Account Number / Cust ID and MPIN.');
+      }
 
-      if (!found) return alert('Account not found in bank records.');
-      if (found.isFrozen) return alert('SECURITY ALERT: This account is currently FROZEN.');
-      if (found.mpin !== mpin) return alert('Invalid MPIN credentials.');
+      // Always perform a live sync from server to ensure latest accounts are present
+      await syncStateFromServer();
+
+      const found = localAccounts.find(a => 
+        (a.accNum && a.accNum.toLowerCase() === input) || 
+        (a.custId && a.custId.toLowerCase() === input)
+      );
+
+      if (!found) {
+        return alert('Authentication Failed: Account not found in IDBI bank records.');
+      }
+      if (found.isFrozen) {
+        return alert('SECURITY ALERT: This account is currently FROZEN by Bank Administration.');
+      }
+      if (found.mpin !== mpin) {
+        return alert('Authentication Failed: Invalid 4-Digit MPIN.');
+      }
 
       activeAccount = found;
       document.getElementById('screen-home').classList.add('hidden');
